@@ -1,0 +1,757 @@
+import React, { useState } from 'react';
+import { 
+  Calendar, 
+  Users, 
+  Clock, 
+  CheckCircle, 
+  AlertTriangle, 
+  Target, 
+  ChevronDown, 
+  ChevronRight, 
+  Triangle as ExclamationTriangle,
+  Filter,
+  Search,
+  SortAsc,
+  SortDesc
+} from 'lucide-react';
+import { User as UserType, Project, Task } from '../../types';
+
+interface TrackProMilestoneProps {
+  currentUser: UserType;
+}
+
+interface EngineerProgress {
+  id: string;
+  name: string;
+  department: 'ITSD' | 'DIG' | 'BSD' | 'TSD';
+  tasks: TaskProgress[];
+  totalHours: number;
+  efficiency: number;
+  completedTasks: number;
+  ongoingTasks: number;
+  pendingTasks: number;
+  overdueTasks: number;
+}
+
+interface TaskProgress {
+  id: string;
+  title: string;
+  projectName: string;
+  status: 'PENDING' | 'ONGOING' | 'COMPLETED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  startDate: string;
+  dueDate: string;
+  estimatedHours: number;
+  actualHours: number;
+  progress: number;
+  startPosition: number; // Position on timeline (percentage)
+  duration: number; // Duration on timeline (percentage)
+  isOverdue: boolean;
+  daysOverdue?: number;
+}
+
+const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) => {
+  const [selectedEngineer, setSelectedEngineer] = useState<string>('all');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [timeFilter, setTimeFilter] = useState<'day' | 'week' | 'month' | 'year'>('week');
+  const [sortBy, setSortBy] = useState<'name' | 'department' | 'date' | 'progress'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Sample Engineers with Departments
+  const sampleEngineers = [
+    { id: '20', name: 'John Cruz', department: 'ITSD' as const },
+    { id: '21', name: 'Maria Santos', department: 'DIG' as const },
+    { id: '22', name: 'Allan Reyes', department: 'BSD' as const },
+    { id: '23', name: 'Kim De Vera', department: 'TSD' as const },
+    { id: '24', name: 'Joseph Mendoza', department: 'DIG' as const },
+    { id: '25', name: 'Ella Navarro', department: 'BSD' as const },
+    { id: '26', name: 'Danilo Garcia', department: 'ITSD' as const },
+    { id: '27', name: 'Erika Lim', department: 'TSD' as const },
+    { id: '28', name: 'Nico Alvarez', department: 'DIG' as const },
+    { id: '29', name: 'Faith Domingo', department: 'BSD' as const }
+  ];
+
+  const departments = ['ITSD', 'DIG', 'BSD', 'TSD'];
+  const projects = ['E-commerce Platform', 'Mobile App Redesign', 'API Integration', 'Security Audit'];
+
+  const isEngineerView = currentUser.role === 'ENGINEER';
+  const canViewAllEngineers = ['TASS', 'PMO', 'TM', 'PM', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role);
+
+  // Calculate timeline boundaries (30 days from today)
+  const getTimelineBounds = () => {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 15); // 15 days before today
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + 15); // 15 days after today
+    return { startDate, endDate };
+  };
+
+  // Calculate position and duration for Gantt chart
+  const calculateGanttPosition = (taskStartDate: string, taskDueDate: string) => {
+    const { startDate: timelineStart, endDate: timelineEnd } = getTimelineBounds();
+    const taskStart = new Date(taskStartDate);
+    const taskEnd = new Date(taskDueDate);
+    
+    const timelineTotal = timelineEnd.getTime() - timelineStart.getTime();
+    const taskStartOffset = taskStart.getTime() - timelineStart.getTime();
+    const taskDuration = taskEnd.getTime() - taskStart.getTime();
+    
+    const startPosition = Math.max(0, (taskStartOffset / timelineTotal) * 100);
+    const duration = Math.min(100 - startPosition, (taskDuration / timelineTotal) * 100);
+    
+    return { startPosition, duration };
+  };
+
+  // Check if task is overdue
+  const isTaskOverdue = (dueDate: string, status: string): boolean => {
+    if (status === 'COMPLETED') return false;
+    return new Date(dueDate) < new Date();
+  };
+
+  // Calculate days overdue
+  const getDaysOverdue = (dueDate: string): number => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = today.getTime() - due.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Generate mock engineer progress data
+  const generateEngineerProgress = (): EngineerProgress[] => {
+    const engineersToShow = isEngineerView 
+      ? sampleEngineers.filter(eng => eng.id === currentUser.id)
+      : sampleEngineers.filter(eng => {
+          const matchesEngineer = selectedEngineer === 'all' || eng.id === selectedEngineer;
+          const matchesDepartment = selectedDepartment === 'all' || eng.department === selectedDepartment;
+          const matchesSearch = searchTerm === '' || eng.name.toLowerCase().includes(searchTerm.toLowerCase());
+          return matchesEngineer && matchesDepartment && matchesSearch;
+        });
+
+    // Create a pool of all possible tasks
+    const allPossibleTasks = [];
+    
+    engineersToShow.forEach(engineer => {
+      // Generate tasks for each engineer
+      const engineerTasks = [
+        {
+          id: `${engineer.id}-1`,
+          title: 'Front-End Development',
+          projectName: 'E-commerce Platform',
+          status: 'ONGOING' as const,
+          priority: 'HIGH' as const,
+          startDate: '2024-01-15',
+          dueDate: '2024-01-25',
+          estimatedHours: 40,
+          actualHours: 28,
+          progress: 70,
+          engineerId: engineer.id,
+          department: engineer.department
+        },
+        {
+          id: `${engineer.id}-2`,
+          title: 'Database Design',
+          projectName: 'E-commerce Platform',
+          status: 'PENDING' as const,
+          priority: 'CRITICAL' as const,
+          startDate: '2024-01-20',
+          dueDate: '2024-01-30',
+          estimatedHours: 32,
+          actualHours: 0,
+          progress: 0,
+          engineerId: engineer.id,
+          department: engineer.department
+        },
+        {
+          id: `${engineer.id}-3`,
+          title: 'Admin Panel Development',
+          projectName: 'Mobile App Redesign',
+          status: 'COMPLETED' as const,
+          priority: 'MEDIUM' as const,
+          startDate: '2024-01-01',
+          dueDate: '2024-01-25',
+          estimatedHours: 24,
+          actualHours: 26,
+          progress: 100,
+          engineerId: engineer.id,
+          department: engineer.department
+        },
+        {
+          id: `${engineer.id}-4`,
+          title: 'API Integration',
+          projectName: 'E-commerce Platform',
+          status: 'ONGOING' as const,
+          priority: 'MEDIUM' as const,
+          startDate: '2024-01-22',
+          dueDate: '2024-02-05',
+          estimatedHours: 20,
+          actualHours: 8,
+          progress: 40,
+          engineerId: engineer.id,
+          department: engineer.department
+        }
+      ];
+
+      allPossibleTasks.push(...engineerTasks);
+    });
+
+    // Filter tasks
+    const filteredTasks = allPossibleTasks.filter(task => {
+      const matchesProject = selectedProject === 'all' || task.projectName.includes(selectedProject);
+      
+      // Time filter
+      const taskDate = new Date(task.startDate);
+      const today = new Date();
+      let matchesTime = true;
+      
+      switch (timeFilter) {
+        case 'day':
+          matchesTime = taskDate.toDateString() === today.toDateString();
+          break;
+        case 'week':
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay());
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          matchesTime = taskDate >= weekStart && taskDate <= weekEnd;
+          break;
+        case 'month':
+          matchesTime = taskDate.getMonth() === today.getMonth() && 
+                       taskDate.getFullYear() === today.getFullYear();
+          break;
+        case 'year':
+          matchesTime = taskDate.getFullYear() === today.getFullYear();
+          break;
+      }
+      
+      return matchesProject && matchesTime;
+    });
+
+    // Group tasks by engineer
+    const engineerProgressData = engineersToShow.map(engineer => {
+      const engineerTasks = filteredTasks.filter(task => task.engineerId === engineer.id);
+      
+      const tasks: TaskProgress[] = engineerTasks.map(task => {
+        const { startPosition, duration } = calculateGanttPosition(task.startDate, task.dueDate);
+        const isOverdue = isTaskOverdue(task.dueDate, task.status);
+        const daysOverdue = isOverdue ? getDaysOverdue(task.dueDate) : undefined;
+        
+        return {
+          id: task.id,
+          title: task.title,
+          projectName: task.projectName,
+          status: task.status,
+          priority: task.priority,
+          startDate: task.startDate,
+          dueDate: task.dueDate,
+          estimatedHours: task.estimatedHours,
+          actualHours: task.actualHours,
+          progress: task.progress,
+          startPosition,
+          duration,
+          isOverdue,
+          daysOverdue
+        };
+      });
+
+      const totalHours = tasks.reduce((sum, task) => sum + task.actualHours, 0);
+      const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
+      const ongoingTasks = tasks.filter(task => task.status === 'ONGOING').length;
+      const pendingTasks = tasks.filter(task => task.status === 'PENDING').length;
+      const overdueTasks = tasks.filter(task => task.isOverdue).length;
+      const estimatedHours = tasks.reduce((sum, task) => sum + task.estimatedHours, 0);
+      const efficiency = estimatedHours > 0 ? (totalHours / estimatedHours) * 100 : 0;
+
+      return {
+        id: engineer.id,
+        name: engineer.name,
+        department: engineer.department,
+        tasks,
+        totalHours,
+        efficiency: Math.round(efficiency),
+        completedTasks,
+        ongoingTasks,
+        pendingTasks,
+        overdueTasks
+      };
+    });
+
+    // Sort engineers based on sortBy and sortOrder
+    return engineerProgressData.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'department':
+          comparison = a.department.localeCompare(b.department);
+          break;
+        case 'date':
+          // Sort by earliest task start date
+          const aEarliestDate = a.tasks.length > 0 ? Math.min(...a.tasks.map(t => new Date(t.startDate).getTime())) : 0;
+          const bEarliestDate = b.tasks.length > 0 ? Math.min(...b.tasks.map(t => new Date(t.startDate).getTime())) : 0;
+          comparison = aEarliestDate - bEarliestDate;
+          break;
+        case 'progress':
+          // Sort by average progress
+          const aAvgProgress = a.tasks.length > 0 ? a.tasks.reduce((sum, t) => sum + t.progress, 0) / a.tasks.length : 0;
+          const bAvgProgress = b.tasks.length > 0 ? b.tasks.reduce((sum, t) => sum + t.progress, 0) / b.tasks.length : 0;
+          comparison = aAvgProgress - bAvgProgress;
+          break;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  const engineerProgressData = generateEngineerProgress();
+
+  const getStatusColor = (status: string, isOverdue: boolean = false) => {
+    if (isOverdue) {
+      return status === 'ONGOING' ? 'bg-red-600' : 'bg-red-500'; // Red for overdue
+    }
+    
+    switch (status) {
+      case 'COMPLETED': return 'bg-green-500';
+      case 'ONGOING': return 'bg-blue-500';
+      case 'PENDING': return 'bg-purple-500';
+      default: return 'bg-gray-400';
+    }
+  };
+
+  const getStatusLabel = (status: string, isOverdue: boolean = false, daysOverdue?: number) => {
+    if (isOverdue) {
+      const overdueText = daysOverdue ? `${daysOverdue}d overdue` : 'overdue';
+      return status === 'ONGOING' ? `● In Progress (${overdueText})` : `● Pending (${overdueText})`;
+    }
+    
+    switch (status) {
+      case 'COMPLETED': return '● Finished';
+      case 'ONGOING': return '● In Progress';
+      case 'PENDING': return '● Pending';
+      default: return '● Unknown';
+    }
+  };
+
+  const getDepartmentColor = (department: string) => {
+    switch (department) {
+      case 'ITSD': return 'bg-blue-100 text-blue-800';
+      case 'DIG': return 'bg-green-100 text-green-800';
+      case 'BSD': return 'bg-purple-100 text-purple-800';
+      case 'TSD': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Generate daily timeline headers
+  const generateDailyHeaders = () => {
+    const { startDate, endDate } = getTimelineBounds();
+    const headers = [];
+    const currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+      const isToday = currentDate.toDateString() === new Date().toDateString();
+      const dayNumber = currentDate.getDate();
+      const dayName = currentDate.toLocaleDateString('en', { weekday: 'short' });
+      
+      headers.push(
+        <div 
+          key={currentDate.getTime()} 
+          className={`flex-shrink-0 w-12 text-center text-xs font-medium border-r border-gray-200 py-3 ${
+            isToday ? 'bg-red-500 text-white' : 'bg-gray-50 text-gray-700'
+          }`}
+        >
+          <div className="font-bold">{dayNumber}</div>
+          <div className="text-xs opacity-75">{dayName}</div>
+        </div>
+      );
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return headers;
+  };
+
+  // Generate month headers
+  const generateMonthHeaders = () => {
+    const { startDate, endDate } = getTimelineBounds();
+    const months = [];
+    const currentDate = new Date(startDate);
+    let currentMonth = currentDate.getMonth();
+    let monthStart = new Date(currentDate);
+    
+    while (currentDate <= endDate) {
+      if (currentDate.getMonth() !== currentMonth || currentDate.getTime() === endDate.getTime()) {
+        const monthEnd = currentDate.getMonth() !== currentMonth ? 
+          new Date(currentDate.getFullYear(), currentDate.getMonth(), 0) : 
+          new Date(currentDate);
+        
+        const daysInMonth = Math.ceil((monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const monthName = monthStart.toLocaleDateString('en', { month: 'long' }).toUpperCase();
+        const isCurrentMonth = new Date().getMonth() === monthStart.getMonth();
+        
+        months.push(
+          <div 
+            key={monthStart.getTime()}
+            className={`text-center text-sm font-bold py-2 border-r border-gray-300 ${
+              isCurrentMonth ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700'
+            }`}
+            style={{ width: `${daysInMonth * 48}px` }}
+          >
+            {monthName}
+          </div>
+        );
+        
+        if (currentDate.getMonth() !== currentMonth) {
+          currentMonth = currentDate.getMonth();
+          monthStart = new Date(currentDate);
+        }
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return months;
+  };
+
+  const getOverallStats = () => {
+    const totalEngineers = engineerProgressData.length;
+    const totalTasks = engineerProgressData.reduce((sum, eng) => sum + eng.tasks.length, 0);
+    const totalCompleted = engineerProgressData.reduce((sum, eng) => sum + eng.completedTasks, 0);
+    const totalOngoing = engineerProgressData.reduce((sum, eng) => sum + eng.ongoingTasks, 0);
+    const totalPending = engineerProgressData.reduce((sum, eng) => sum + eng.pendingTasks, 0);
+    const totalOverdue = engineerProgressData.reduce((sum, eng) => sum + eng.overdueTasks, 0);
+
+    return {
+      totalEngineers,
+      totalTasks,
+      totalCompleted,
+      totalOngoing,
+      totalPending,
+      totalOverdue
+    };
+  };
+
+  const stats = getOverallStats();
+
+  const handleSort = (field: typeof sortBy) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">TRACKPRO MILESTONE</h1>
+          <p className="text-gray-600">
+            {isEngineerView 
+              ? 'Track your task progress with daily timeline'
+              : 'Monitor engineer progress with daily Gantt chart and advanced filtering'
+            }
+          </p>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-gray-900">{stats.totalEngineers}</div>
+              <div className="text-sm text-gray-600">Engineers</div>
+            </div>
+            <Users className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="text-2xl font-bold text-gray-900">{stats.totalTasks}</div>
+          <div className="text-sm text-gray-600">Total Tasks</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="text-2xl font-bold text-green-600">{stats.totalCompleted}</div>
+          <div className="text-sm text-gray-600">Finished</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="text-2xl font-bold text-blue-600">{stats.totalOngoing}</div>
+          <div className="text-sm text-gray-600">In Progress</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="text-2xl font-bold text-purple-600">{stats.totalPending}</div>
+          <div className="text-sm text-gray-600">Pending</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="text-2xl font-bold text-red-600">{stats.totalOverdue}</div>
+          <div className="text-sm text-gray-600">Overdue</div>
+        </div>
+      </div>
+
+      {/* Enhanced Filters and Sorting */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search engineers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Engineer Filter */}
+          <select
+            value={selectedEngineer}
+            onChange={(e) => setSelectedEngineer(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Engineers</option>
+            {sampleEngineers.map(engineer => (
+              <option key={engineer.id} value={engineer.id}>{engineer.name}</option>
+            ))}
+          </select>
+
+          {/* Department Filter */}
+          <select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Departments</option>
+            {departments.map(dept => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
+          </select>
+
+          {/* Project Filter */}
+          <select
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Projects</option>
+            {projects.map(project => (
+              <option key={project} value={project}>{project}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Time Filter */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">Time:</span>
+            <div className="flex space-x-1">
+              {(['day', 'week', 'month', 'year'] as const).map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setTimeFilter(period)}
+                  className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                    timeFilter === period
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {period.charAt(0).toUpperCase() + period.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sort Options */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <div className="flex space-x-1">
+              {([
+                { key: 'name', label: 'Name' },
+                { key: 'department', label: 'Department' },
+                { key: 'date', label: 'Date' },
+                { key: 'progress', label: 'Progress' }
+              ] as const).map((option) => (
+                <button
+                  key={option.key}
+                  onClick={() => handleSort(option.key)}
+                  className={`flex items-center space-x-1 px-3 py-1 text-sm rounded-lg transition-colors ${
+                    sortBy === option.key
+                      ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span>{option.label}</span>
+                  {sortBy === option.key && (
+                    sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Gantt Chart with Engineer Names and Task Status */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 text-center">TRACKPRO MILESTONE GANTT CHART</h3>
+          <p className="text-sm text-gray-600 text-center mt-1">
+            Engineer progress tracking with task status visualization
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          {/* Month Headers */}
+          <div className="flex border-b-2 border-gray-300">
+            <div className="w-64 flex-shrink-0 bg-gray-100 border-r-2 border-gray-300"></div>
+            <div className="flex">
+              {generateMonthHeaders()}
+            </div>
+          </div>
+
+          {/* Daily Date Headers */}
+          <div className="flex border-b border-gray-200">
+            <div className="w-64 flex-shrink-0 bg-gray-50 border-r border-gray-200"></div>
+            <div className="flex">
+              {generateDailyHeaders()}
+            </div>
+          </div>
+
+          {/* Engineer Progress Rows */}
+          <div className="min-h-[400px] bg-gray-50">
+            {engineerProgressData.map((engineer, engineerIndex) => {
+              const backgroundColor = engineerIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+              
+              return (
+                <div key={engineer.id}>
+                  {engineer.tasks.map((task, taskIndex) => (
+                    <div key={task.id} className={`flex border-b border-gray-100 ${backgroundColor}`}>
+                      {/* Engineer Name Column */}
+                      <div className="w-64 flex-shrink-0 border-r border-gray-200 p-3 flex items-center">
+                        <div className="flex items-center space-x-2">
+                          <div className="text-sm font-medium text-gray-900">
+                            {taskIndex === 0 ? (
+                              <div>
+                                <div className="flex items-center space-x-2">
+                                  <span>{engineer.name}</span>
+                                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getDepartmentColor(engineer.department)}`}>
+                                    {engineer.department}
+                                  </span>
+                                </div>
+                                {engineer.overdueTasks > 0 && (
+                                  <div className="flex items-center space-x-1 mt-1">
+                                    <ExclamationTriangle className="w-3 h-3 text-red-500" />
+                                    <span className="text-xs text-red-600 font-medium">
+                                      {engineer.overdueTasks} overdue
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : ''}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Timeline Column */}
+                      <div className="relative p-3" style={{ width: `${30 * 48}px` }}>
+                        {/* Task Bar */}
+                        <div className="relative h-8 flex items-center">
+                          <div
+                            className={`absolute h-6 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-sm ${
+                              getStatusColor(task.status, task.isOverdue)
+                            } ${task.isOverdue ? 'animate-pulse border-2 border-red-700' : ''}`}
+                            style={{
+                              left: `${task.startPosition}%`,
+                              width: `${Math.max(task.duration, 8)}%`,
+                              minWidth: '120px'
+                            }}
+                            title={`${task.title}: ${new Date(task.startDate).toLocaleDateString()} - ${new Date(task.dueDate).toLocaleDateString()}${
+                              task.isOverdue ? ` (${task.daysOverdue} days overdue)` : ''
+                            }`}
+                          >
+                            <span className="truncate px-2">
+                              {getStatusLabel(task.status, task.isOverdue, task.daysOverdue)}
+                            </span>
+                          </div>
+                          
+                          {/* Task Label */}
+                          <div 
+                            className="absolute text-xs font-medium whitespace-nowrap text-gray-700"
+                            style={{
+                              left: `${task.startPosition + Math.max(task.duration, 8) + 1}%`
+                            }}
+                          >
+                            {task.title}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Task Status Legend */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Task Status</h4>
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
+                <span className="text-purple-600 font-medium">● Pending</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                <span className="text-blue-600 font-medium">● In Progress</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                <span className="text-green-600 font-medium">● Finished</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-red-600 rounded-full animate-pulse"></div>
+                <span className="text-red-600 font-medium">● Overdue</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Department Legend */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Departments</h4>
+            <div className="flex flex-wrap gap-3">
+              {departments.map(dept => (
+                <div key={dept} className="flex items-center space-x-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getDepartmentColor(dept)}`}>
+                    {dept}
+                  </span>
+                  <span className="text-xs text-gray-600">
+                    {dept === 'ITSD' && 'IT Services'}
+                    {dept === 'DIG' && 'Digital Innovation'}
+                    {dept === 'BSD' && 'Business Solutions'}
+                    {dept === 'TSD' && 'Technical Support'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TrackProMilestone;
