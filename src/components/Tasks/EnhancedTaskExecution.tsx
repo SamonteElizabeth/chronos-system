@@ -16,16 +16,30 @@ import { User, Project, Task, RequestFormData } from '../../types';
 import { useTimer } from '../../hooks/useTimer';
 import TaskForm from '../Forms/TaskForm';
 import RequestForm from '../Forms/RequestForm';
+import TaskCompletionModal from './TaskCompletionModal';
 
 interface EnhancedTaskExecutionProps {
   currentUser: User;
+}
+
+interface TaskCompletionData {
+  taskId: string;
+  accomplishments: string;
+  remarks: string;
+  attachments: File[];
+  completionDate: string;
+  actualHoursSpent: number;
+  challenges: string;
+  nextSteps: string;
 }
 
 const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUser }) => {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [isRequestFormOpen, setIsRequestFormOpen] = useState(false);
+  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const [selectedTaskForRequest, setSelectedTaskForRequest] = useState<string>('');
+  const [selectedTaskForCompletion, setSelectedTaskForCompletion] = useState<Task | null>(null);
   const [requestType, setRequestType] = useState<RequestFormData['type']>('OVERTIME');
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -200,15 +214,33 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
     alert(`${data.type} request submitted successfully!`);
   };
 
-  const handleTaskComplete = (taskId: string) => {
+  const handleTaskCompleteClick = (task: Task) => {
+    setSelectedTaskForCompletion(task);
+    setIsCompletionModalOpen(true);
+  };
+
+  const handleTaskCompletionSubmit = (data: TaskCompletionData) => {
+    // Update the task status and actual hours
     setTasks(prevTasks => 
       prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, status: 'COMPLETED' as const, actualHours: task.actualHours || task.estimatedHours }
+        task.id === data.taskId 
+          ? { 
+              ...task, 
+              status: 'COMPLETED' as const, 
+              actualHours: data.actualHoursSpent 
+            }
           : task
       )
     );
-    alert('Task marked as completed!');
+
+    // In real app, this would save to backend with attachments
+    console.log('Task completion data:', {
+      ...data,
+      attachmentCount: data.attachments.length,
+      attachmentNames: data.attachments.map(f => f.name)
+    });
+
+    alert(`✅ Task "${selectedTaskForCompletion?.title}" has been completed successfully!\n\n📋 Accomplishments and attachments have been saved.`);
   };
 
   if (selectedProject) {
@@ -351,7 +383,7 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
                     </button>
 
                     <button
-                      onClick={() => handleTaskComplete(task.id)}
+                      onClick={() => handleTaskCompleteClick(task)}
                       className="flex items-center justify-center space-x-2 py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
                     >
                       <CheckCircle className="w-4 h-4" />
@@ -427,6 +459,13 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
           availableTasks={projectTasks}
           preselectedTaskId={selectedTaskForRequest}
           preselectedType={requestType}
+        />
+
+        <TaskCompletionModal
+          isOpen={isCompletionModalOpen}
+          onClose={() => setIsCompletionModalOpen(false)}
+          onSubmit={handleTaskCompletionSubmit}
+          task={selectedTaskForCompletion}
         />
       </div>
     );
@@ -547,6 +586,14 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
           </p>
         </div>
       )}
+
+      {/* Task Completion Modal */}
+      <TaskCompletionModal
+        isOpen={isCompletionModalOpen}
+        onClose={() => setIsCompletionModalOpen(false)}
+        onSubmit={handleTaskCompletionSubmit}
+        task={selectedTaskForCompletion}
+      />
     </div>
   );
 };
