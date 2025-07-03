@@ -54,7 +54,7 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
   const [selectedEngineer, setSelectedEngineer] = useState<string>('all');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<string>('all');
-  const [timeFilter, setTimeFilter] = useState<'day' | 'week' | 'month' | 'year'>('week');
+  const [timeFilter, setTimeFilter] = useState<'day' | 'week' | 'month' | 'year'>('month');
   const [sortBy, setSortBy] = useState<'name' | 'department' | 'date' | 'progress'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,13 +79,13 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
   const isEngineerView = currentUser.role === 'ENGINEER';
   const canViewAllEngineers = ['TASS', 'PMO', 'TM', 'PM', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role);
 
-  // Calculate timeline boundaries (30 days from today)
+  // Calculate timeline boundaries (60 days from today - 30 before, 30 after)
   const getTimelineBounds = () => {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 15); // 15 days before today
+    startDate.setDate(today.getDate() - 30); // 30 days before today
     const endDate = new Date(today);
-    endDate.setDate(today.getDate() + 15); // 15 days after today
+    endDate.setDate(today.getDate() + 30); // 30 days after today
     return { startDate, endDate };
   };
 
@@ -119,7 +119,7 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Generate mock engineer progress data
+  // Generate mock engineer progress data with multiple tasks per engineer
   const generateEngineerProgress = (): EngineerProgress[] => {
     const engineersToShow = isEngineerView 
       ? sampleEngineers.filter(eng => eng.id === currentUser.id)
@@ -130,20 +130,17 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
           return matchesEngineer && matchesDepartment && matchesSearch;
         });
 
-    // Create a pool of all possible tasks
-    const allPossibleTasks = [];
-    
-    engineersToShow.forEach(engineer => {
-      // Generate tasks for each engineer
+    return engineersToShow.map(engineer => {
+      // Generate multiple tasks per engineer
       const engineerTasks = [
         {
           id: `${engineer.id}-1`,
-          title: 'Front-End Development',
+          title: 'Security Implementation',
           projectName: 'E-commerce Platform',
           status: 'ONGOING' as const,
-          priority: 'HIGH' as const,
-          startDate: '2024-01-15',
-          dueDate: '2024-01-25',
+          priority: 'CRITICAL' as const,
+          startDate: '2024-06-17',
+          dueDate: '2024-06-30',
           estimatedHours: 40,
           actualHours: 28,
           progress: 70,
@@ -152,88 +149,41 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
         },
         {
           id: `${engineer.id}-2`,
-          title: 'Database Design',
-          projectName: 'E-commerce Platform',
-          status: 'PENDING' as const,
-          priority: 'CRITICAL' as const,
-          startDate: '2024-01-20',
-          dueDate: '2024-01-30',
-          estimatedHours: 32,
-          actualHours: 0,
-          progress: 0,
-          engineerId: engineer.id,
-          department: engineer.department
-        },
-        {
-          id: `${engineer.id}-3`,
           title: 'Admin Panel Development',
           projectName: 'Mobile App Redesign',
           status: 'COMPLETED' as const,
-          priority: 'MEDIUM' as const,
-          startDate: '2024-01-01',
-          dueDate: '2024-01-25',
-          estimatedHours: 24,
-          actualHours: 26,
+          priority: 'HIGH' as const,
+          startDate: '2024-06-01',
+          dueDate: '2024-07-15',
+          estimatedHours: 60,
+          actualHours: 58,
           progress: 100,
           engineerId: engineer.id,
           department: engineer.department
         },
         {
-          id: `${engineer.id}-4`,
-          title: 'API Integration',
-          projectName: 'E-commerce Platform',
-          status: 'ONGOING' as const,
+          id: `${engineer.id}-3`,
+          title: 'Database Migration',
+          projectName: 'API Integration',
+          status: 'PENDING' as const,
           priority: 'MEDIUM' as const,
-          startDate: '2024-01-22',
-          dueDate: '2024-02-05',
-          estimatedHours: 20,
-          actualHours: 8,
-          progress: 40,
+          startDate: '2024-07-01',
+          dueDate: '2024-07-20',
+          estimatedHours: 32,
+          actualHours: 0,
+          progress: 0,
           engineerId: engineer.id,
           department: engineer.department
         }
       ];
 
-      allPossibleTasks.push(...engineerTasks);
-    });
+      // Filter tasks based on project filter
+      const filteredTasks = engineerTasks.filter(task => {
+        const matchesProject = selectedProject === 'all' || task.projectName.includes(selectedProject);
+        return matchesProject;
+      });
 
-    // Filter tasks
-    const filteredTasks = allPossibleTasks.filter(task => {
-      const matchesProject = selectedProject === 'all' || task.projectName.includes(selectedProject);
-      
-      // Time filter
-      const taskDate = new Date(task.startDate);
-      const today = new Date();
-      let matchesTime = true;
-      
-      switch (timeFilter) {
-        case 'day':
-          matchesTime = taskDate.toDateString() === today.toDateString();
-          break;
-        case 'week':
-          const weekStart = new Date(today);
-          weekStart.setDate(today.getDate() - today.getDay());
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekStart.getDate() + 6);
-          matchesTime = taskDate >= weekStart && taskDate <= weekEnd;
-          break;
-        case 'month':
-          matchesTime = taskDate.getMonth() === today.getMonth() && 
-                       taskDate.getFullYear() === today.getFullYear();
-          break;
-        case 'year':
-          matchesTime = taskDate.getFullYear() === today.getFullYear();
-          break;
-      }
-      
-      return matchesProject && matchesTime;
-    });
-
-    // Group tasks by engineer
-    const engineerProgressData = engineersToShow.map(engineer => {
-      const engineerTasks = filteredTasks.filter(task => task.engineerId === engineer.id);
-      
-      const tasks: TaskProgress[] = engineerTasks.map(task => {
+      const tasks: TaskProgress[] = filteredTasks.map(task => {
         const { startPosition, duration } = calculateGanttPosition(task.startDate, task.dueDate);
         const isOverdue = isTaskOverdue(task.dueDate, task.status);
         const daysOverdue = isOverdue ? getDaysOverdue(task.dueDate) : undefined;
@@ -277,41 +227,13 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
         overdueTasks
       };
     });
-
-    // Sort engineers based on sortBy and sortOrder
-    return engineerProgressData.sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'department':
-          comparison = a.department.localeCompare(b.department);
-          break;
-        case 'date':
-          // Sort by earliest task start date
-          const aEarliestDate = a.tasks.length > 0 ? Math.min(...a.tasks.map(t => new Date(t.startDate).getTime())) : 0;
-          const bEarliestDate = b.tasks.length > 0 ? Math.min(...b.tasks.map(t => new Date(t.startDate).getTime())) : 0;
-          comparison = aEarliestDate - bEarliestDate;
-          break;
-        case 'progress':
-          // Sort by average progress
-          const aAvgProgress = a.tasks.length > 0 ? a.tasks.reduce((sum, t) => sum + t.progress, 0) / a.tasks.length : 0;
-          const bAvgProgress = b.tasks.length > 0 ? b.tasks.reduce((sum, t) => sum + t.progress, 0) / b.tasks.length : 0;
-          comparison = aAvgProgress - bAvgProgress;
-          break;
-      }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
   };
 
   const engineerProgressData = generateEngineerProgress();
 
   const getStatusColor = (status: string, isOverdue: boolean = false) => {
     if (isOverdue) {
-      return status === 'ONGOING' ? 'bg-red-600' : 'bg-red-500'; // Red for overdue
+      return 'bg-red-500'; // Red for overdue
     }
     
     switch (status) {
@@ -324,8 +246,8 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
 
   const getStatusLabel = (status: string, isOverdue: boolean = false, daysOverdue?: number) => {
     if (isOverdue) {
-      const overdueText = daysOverdue ? `${daysOverdue}d overdue` : 'overdue';
-      return status === 'ONGOING' ? `● In Progress (${overdueText})` : `● Pending (${overdueText})`;
+      const overdueText = daysOverdue ? ` (${daysOverdue}d overdue)` : ' (overdue)';
+      return status === 'ONGOING' ? `● In Progress${overdueText}` : `● Pending${overdueText}`;
     }
     
     switch (status) {
@@ -360,8 +282,8 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
       headers.push(
         <div 
           key={currentDate.getTime()} 
-          className={`flex-shrink-0 w-12 text-center text-xs font-medium border-r border-gray-200 py-3 ${
-            isToday ? 'bg-red-500 text-white' : 'bg-gray-50 text-gray-700'
+          className={`flex-shrink-0 w-12 text-center text-xs font-medium border-r border-gray-300 py-2 ${
+            isToday ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700'
           }`}
         >
           <div className="font-bold">{dayNumber}</div>
@@ -392,12 +314,13 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
         const monthName = monthStart.toLocaleDateString('en', { month: 'long' }).toUpperCase();
         const isCurrentMonth = new Date().getMonth() === monthStart.getMonth();
         
+        // Alternate colors for months
+        const monthColor = monthStart.getMonth() % 2 === 0 ? 'bg-blue-500' : 'bg-red-500';
+        
         months.push(
           <div 
             key={monthStart.getTime()}
-            className={`text-center text-sm font-bold py-2 border-r border-gray-300 ${
-              isCurrentMonth ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700'
-            }`}
+            className={`text-center text-sm font-bold py-3 border-r border-gray-400 text-white ${monthColor}`}
             style={{ width: `${daysInMonth * 48}px` }}
           >
             {monthName}
@@ -611,16 +534,16 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
 
         <div className="overflow-x-auto">
           {/* Month Headers */}
-          <div className="flex border-b-2 border-gray-300">
-            <div className="w-64 flex-shrink-0 bg-gray-100 border-r-2 border-gray-300"></div>
+          <div className="flex border-b-2 border-gray-400">
+            <div className="w-48 flex-shrink-0 bg-gray-200 border-r-2 border-gray-400"></div>
             <div className="flex">
               {generateMonthHeaders()}
             </div>
           </div>
 
           {/* Daily Date Headers */}
-          <div className="flex border-b border-gray-200">
-            <div className="w-64 flex-shrink-0 bg-gray-50 border-r border-gray-200"></div>
+          <div className="flex border-b border-gray-300">
+            <div className="w-48 flex-shrink-0 bg-gray-100 border-r border-gray-300"></div>
             <div className="flex">
               {generateDailyHeaders()}
             </div>
@@ -629,82 +552,88 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
           {/* Engineer Progress Rows */}
           <div className="min-h-[400px] bg-gray-50">
             {engineerProgressData.map((engineer, engineerIndex) => {
-              const backgroundColor = engineerIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-              
-              return (
-                <div key={engineer.id}>
-                  {engineer.tasks.map((task, taskIndex) => (
-                    <div key={task.id} className={`flex border-b border-gray-100 ${backgroundColor}`}>
-                      {/* Engineer Name Column */}
-                      <div className="w-64 flex-shrink-0 border-r border-gray-200 p-3 flex items-center">
+              return engineer.tasks.map((task, taskIndex) => {
+                const backgroundColor = engineerIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                const isFirstTaskForEngineer = taskIndex === 0;
+                
+                return (
+                  <div key={`${engineer.id}-${task.id}`} className={`flex border-b border-gray-200 ${backgroundColor} min-h-[50px]`}>
+                    {/* Engineer Name Column */}
+                    <div className="w-48 flex-shrink-0 border-r border-gray-300 p-3 flex items-center">
+                      {isFirstTaskForEngineer ? (
                         <div className="flex items-center space-x-2">
                           <div className="text-sm font-medium text-gray-900">
-                            {taskIndex === 0 ? (
-                              <div>
-                                <div className="flex items-center space-x-2">
-                                  <span>{engineer.name}</span>
-                                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getDepartmentColor(engineer.department)}`}>
-                                    {engineer.department}
-                                  </span>
-                                </div>
-                                {engineer.overdueTasks > 0 && (
-                                  <div className="flex items-center space-x-1 mt-1">
-                                    <ExclamationTriangle className="w-3 h-3 text-red-500" />
-                                    <span className="text-xs text-red-600 font-medium">
-                                      {engineer.overdueTasks} overdue
-                                    </span>
-                                  </div>
-                                )}
+                            <div className="flex items-center space-x-2">
+                              <span>{engineer.name}</span>
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getDepartmentColor(engineer.department)}`}>
+                                {engineer.department}
+                              </span>
+                            </div>
+                            {engineer.overdueTasks > 0 && (
+                              <div className="flex items-center space-x-1 mt-1">
+                                <ExclamationTriangle className="w-3 h-3 text-red-500" />
+                                <span className="text-xs text-red-600 font-medium">
+                                  {engineer.overdueTasks} overdue
+                                </span>
                               </div>
-                            ) : ''}
+                            )}
                           </div>
                         </div>
-                      </div>
-                      
-                      {/* Timeline Column */}
-                      <div className="relative p-3" style={{ width: `${30 * 48}px` }}>
-                        {/* Task Bar */}
-                        <div className="relative h-8 flex items-center">
-                          <div
-                            className={`absolute h-6 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-sm ${
-                              getStatusColor(task.status, task.isOverdue)
-                            } ${task.isOverdue ? 'animate-pulse border-2 border-red-700' : ''}`}
-                            style={{
-                              left: `${task.startPosition}%`,
-                              width: `${Math.max(task.duration, 8)}%`,
-                              minWidth: '120px'
-                            }}
-                            title={`${task.title}: ${new Date(task.startDate).toLocaleDateString()} - ${new Date(task.dueDate).toLocaleDateString()}${
-                              task.isOverdue ? ` (${task.daysOverdue} days overdue)` : ''
-                            }`}
-                          >
-                            <span className="truncate px-2">
-                              {getStatusLabel(task.status, task.isOverdue, task.daysOverdue)}
-                            </span>
-                          </div>
-                          
-                          {/* Task Label */}
-                          <div 
-                            className="absolute text-xs font-medium whitespace-nowrap text-gray-700"
-                            style={{
-                              left: `${task.startPosition + Math.max(task.duration, 8) + 1}%`
-                            }}
-                          >
-                            {task.title}
-                          </div>
+                      ) : (
+                        <div className="text-sm text-gray-400">
+                          {/* Empty for subsequent tasks */}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Timeline Column */}
+                    <div className="relative p-3 flex items-center" style={{ width: `${60 * 48}px` }}>
+                      {/* Task Bar */}
+                      <div className="relative h-8 w-full">
+                        <div
+                          className={`absolute h-6 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-sm ${
+                            getStatusColor(task.status, task.isOverdue)
+                          } ${task.isOverdue ? 'animate-pulse border-2 border-red-700' : ''}`}
+                          style={{
+                            left: `${task.startPosition}%`,
+                            width: `${Math.max(task.duration, 15)}%`,
+                            minWidth: '120px'
+                          }}
+                          title={`${task.title}: ${new Date(task.startDate).toLocaleDateString()} - ${new Date(task.dueDate).toLocaleDateString()}${
+                            task.isOverdue ? ` (${task.daysOverdue} days overdue)` : ''
+                          }`}
+                        >
+                          <span className="truncate px-2">
+                            {getStatusLabel(task.status, task.isOverdue, task.daysOverdue)}
+                          </span>
+                        </div>
+                        
+                        {/* Task Label */}
+                        <div 
+                          className="absolute text-sm font-medium whitespace-nowrap text-gray-700 flex items-center"
+                          style={{
+                            left: `${task.startPosition + Math.max(task.duration, 15) + 2}%`,
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                          }}
+                        >
+                          {task.title}
+                          {task.isOverdue && (
+                            <ExclamationTriangle className="w-4 h-4 text-red-500 ml-2" />
+                          )}
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              );
+                  </div>
+                );
+              });
             })}
           </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Task Status Legend */}
           <div>
@@ -723,8 +652,12 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
                 <span className="text-green-600 font-medium">● Finished</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-red-600 rounded-full animate-pulse"></div>
-                <span className="text-red-600 font-medium">● Overdue</span>
+                <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-red-600 font-medium">● Overdue (Top 4 Critical)</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <ExclamationTriangle className="w-4 h-4 text-red-500" />
+                <span className="text-red-600 font-medium">Requires Immediate Attention</span>
               </div>
             </div>
           </div>
