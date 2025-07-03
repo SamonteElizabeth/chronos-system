@@ -36,7 +36,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
   const [customTaskName, setCustomTaskName] = useState('');
   const [isCustomTask, setIsCustomTask] = useState(false);
 
-  // Predefined tasks for TM dropdown
+  // Predefined tasks for both PM and TM dropdown
   const predefinedTasks = [
     'Requirements Analysis',
     'System Design',
@@ -52,7 +52,17 @@ const TaskForm: React.FC<TaskFormProps> = ({
     'Performance Optimization',
     'Security Implementation',
     'Integration Testing',
-    'User Acceptance Testing'
+    'User Acceptance Testing',
+    'Project Planning',
+    'Resource Allocation',
+    'Risk Assessment',
+    'Stakeholder Management',
+    'Quality Assurance',
+    'System Architecture',
+    'Technical Specification',
+    'User Interface Design',
+    'Database Migration',
+    'Third-party Integration'
   ];
 
   const availableEngineers = [
@@ -115,8 +125,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const taskName = isCustomTask ? customTaskName : formData.taskName;
     if (!taskName.trim()) newErrors.taskName = 'Task Name is required';
     
-    // For TM, sub task is required
-    if (userRole === 'TM' && !formData.subTask.trim()) {
+    // For both PM and TM, sub task is required
+    if ((userRole === 'TM' || userRole === 'PM') && !formData.subTask.trim()) {
       newErrors.subTask = 'Sub Task is required';
     }
     
@@ -217,13 +227,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
               </div>
             )}
 
-            {/* Task Name */}
+            {/* Task Name - Both PM and TM get dropdown with predefined tasks */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Task Name *
               </label>
               
-              {userRole === 'TM' ? (
+              {(userRole === 'TM' || userRole === 'PM') ? (
                 <div className="space-y-2">
                   <select
                     value={isCustomTask ? 'CUSTOM' : formData.taskName}
@@ -252,7 +262,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                   )}
                 </div>
               ) : (
-                // PM - Free text input
+                // Other roles - Free text input
                 <input
                   type="text"
                   value={formData.taskName}
@@ -269,8 +279,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
               )}
             </div>
 
-            {/* Sub Task - Only for TM */}
-            {userRole === 'TM' && (
+            {/* Sub Task - For both PM and TM */}
+            {(userRole === 'TM' || userRole === 'PM') && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Sub Task *
