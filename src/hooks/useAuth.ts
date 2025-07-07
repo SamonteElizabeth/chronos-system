@@ -12,15 +12,6 @@ const mockUsers: User[] = [
   { id: '19', name: 'Jennifer Lee', email: 'jennifer@chronos.com', role: 'TM_DEPT_HEAD' },
   // Sample Engineers with Departments
   { id: '20', name: 'John Cruz', email: 'john.cruz@chronos.com', role: 'ENGINEER', department: 'ITSD' },
-  { id: '21', name: 'Maria Santos', email: 'maria.santos@chronos.com', role: 'ENGINEER', department: 'DIG' },
-  { id: '22', name: 'Allan Reyes', email: 'allan.reyes@chronos.com', role: 'ENGINEER', department: 'BSD' },
-  { id: '23', name: 'Kim De Vera', email: 'kim.devera@chronos.com', role: 'ENGINEER', department: 'TSD' },
-  { id: '24', name: 'Joseph Mendoza', email: 'joseph.mendoza@chronos.com', role: 'ENGINEER', department: 'DIG' },
-  { id: '25', name: 'Ella Navarro', email: 'ella.navarro@chronos.com', role: 'ENGINEER', department: 'BSD' },
-  { id: '26', name: 'Danilo Garcia', email: 'danilo.garcia@chronos.com', role: 'ENGINEER', department: 'ITSD' },
-  { id: '27', name: 'Erika Lim', email: 'erika.lim@chronos.com', role: 'ENGINEER', department: 'TSD' },
-  { id: '28', name: 'Nico Alvarez', email: 'nico.alvarez@chronos.com', role: 'ENGINEER', department: 'DIG' },
-  { id: '29', name: 'Faith Domingo', email: 'faith.domingo@chronos.com', role: 'ENGINEER', department: 'BSD' },
 ];
 
 export const useAuth = () => {
