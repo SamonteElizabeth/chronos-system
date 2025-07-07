@@ -10,8 +10,6 @@ const mockUsers: User[] = [
   // New Department Head roles
   { id: '18', name: 'Robert Martinez', email: 'robert@chronos.com', role: 'PM_DEPT_HEAD' },
   { id: '19', name: 'Jennifer Lee', email: 'jennifer@chronos.com', role: 'TM_DEPT_HEAD' },
-  // Sample Engineers with Departments
-  { id: '20', name: 'John Cruz', email: 'john.cruz@chronos.com', role: 'ENGINEER', department: 'ITSD' },
 ];
 
 export const useAuth = () => {
