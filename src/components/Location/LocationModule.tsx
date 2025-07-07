@@ -136,6 +136,67 @@ const LocationModule: React.FC<LocationModuleProps> = ({ currentUser }) => {
         lastUpdate: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
         workingHours: 6.8,
         efficiency: 91
+      },
+      // Sample Engineers
+      {
+        id: '20',
+        name: 'John Cruz',
+        taskTitle: 'System Integration',
+        projectName: 'ITSD Project Alpha',
+        location: {
+          lat: 40.7580,
+          lng: -73.9855,
+          address: 'ITSD Office, 890 Tech Ave, New York, NY 10017'
+        },
+        status: 'ACTIVE',
+        lastUpdate: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+        workingHours: 7.5,
+        efficiency: 88
+      },
+      {
+        id: '21',
+        name: 'Maria Santos',
+        taskTitle: 'Digital Innovation',
+        projectName: 'DIG Project Beta',
+        location: {
+          lat: 40.7490,
+          lng: -73.9857,
+          address: 'Innovation Hub, 234 Digital St, New York, NY 10018'
+        },
+        status: 'ACTIVE',
+        lastUpdate: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
+        workingHours: 6.8,
+        efficiency: 93
+      },
+      {
+        id: '22',
+        name: 'Allan Reyes',
+        taskTitle: 'Business Solutions',
+        projectName: 'BSD Project Gamma',
+        location: {
+          lat: 40.7614,
+          lng: -73.9776,
+          address: 'Business Center, 567 Solution Blvd, New York, NY 10019'
+        },
+        status: 'IDLE',
+        lastUpdate: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        workingHours: 5.2,
+        efficiency: 85
+      },
+      {
+        id: '23',
+        name: 'Kim De Vera',
+        taskTitle: 'Technical Support',
+        projectName: 'TSD Project Delta',
+        location: {
+          lat: 40.7505,
+          lng: -73.9934,
+          address: 'Support Center, 789 Help St, New York, NY 10020'
+        },
+        status: 'ACTIVE',
+        lastUpdate: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
+        workingHours: 7.0,
+        efficiency: 90
       }
     ];
 
@@ -145,6 +206,14 @@ const LocationModule: React.FC<LocationModuleProps> = ({ currentUser }) => {
         return allEngineers; // TASS can see all engineers
       case 'PMO':
         return allEngineers; // PMO can see all engineers
+      case 'PM_DEPT_HEAD':
+        return allEngineers.filter(eng => 
+          ['E-commerce Platform', 'Mobile App Redesign', 'API Integration'].includes(eng.projectName)
+        ); // PM Dept Head can see engineers in PM-managed projects
+      case 'TM_DEPT_HEAD':
+        return allEngineers.filter(eng => 
+          ['ITSD Project Alpha', 'DIG Project Beta', 'BSD Project Gamma', 'TSD Project Delta'].includes(eng.projectName)
+        ); // TM Dept Head can see engineers in TM-managed projects
       case 'PM':
         // PM can see engineers in their projects
         return allEngineers.filter(eng => 
@@ -219,7 +288,7 @@ const LocationModule: React.FC<LocationModuleProps> = ({ currentUser }) => {
     setIsMapModalOpen(true);
   };
 
-  const canAccessLocation = ['TASS', 'PMO', 'PM', 'TM'].includes(currentUser.role);
+  const canAccessLocation = ['TASS', 'PMO', 'PM', 'TM', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role);
 
   if (!canAccessLocation) {
     return (
@@ -229,7 +298,7 @@ const LocationModule: React.FC<LocationModuleProps> = ({ currentUser }) => {
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">Access Restricted</h3>
         <p className="text-gray-600">
-          Only TASS, PMO, PM, and TM users can access the Location module.
+          Only TASS, PMO, PM, TM, and Department Head users can access the Location module.
         </p>
       </div>
     );

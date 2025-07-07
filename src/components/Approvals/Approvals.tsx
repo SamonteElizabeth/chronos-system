@@ -79,7 +79,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
         expectedImpact: 'Accurate time tracking for project billing and resource planning',
         submittedTo: 'PM'
       },
-      // PM requests for PMO approval
+      // PM requests for PM Dept Head approval
       {
         id: '4',
         type: 'OVERTIME',
@@ -94,22 +94,22 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
         justification: 'Need to coordinate with multiple teams over the weekend to ensure project delivery on Monday.',
         urgency: 'HIGH',
         expectedImpact: 'Ensures project delivery on schedule and maintains team coordination',
-        submittedTo: 'PMO' // PM submitting to PMO
+        submittedTo: 'PM_DEPT_HEAD' // PM submitting to PM Dept Head
       },
       {
         id: '5',
         type: 'EXTENSION',
         taskId: '5',
-        userId: '4', // David Kim (TM)
+        userId: '11', // Another PM
         status: 'PENDING',
-        reason: 'Technical complexity requires additional time',
+        reason: 'Client scope change requires additional time',
         submittedAt: '2024-01-19T12:00:00Z',
-        justification: 'The technical implementation is more complex than initially estimated. Need additional time to ensure quality delivery.',
+        justification: 'Client has requested significant changes to the project scope that require additional planning and execution time.',
         urgency: 'MEDIUM',
-        expectedImpact: 'Better code quality and fewer bugs in production',
-        submittedTo: 'PMO' // TM submitting to PMO
+        expectedImpact: 'Better alignment with client expectations and higher quality delivery',
+        submittedTo: 'PM_DEPT_HEAD' // PM submitting to PM Dept Head
       },
-      // TM requests for TASS approval
+      // TM requests for TM Dept Head approval
       {
         id: '6',
         type: 'OVERTIME',
@@ -124,7 +124,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
         justification: 'Need to provide technical guidance to the team during critical implementation phase.',
         urgency: 'HIGH',
         expectedImpact: 'Ensures technical quality and prevents architectural issues',
-        submittedTo: 'TASS' // TM submitting to TASS
+        submittedTo: 'TM_DEPT_HEAD' // TM submitting to TM Dept Head
       },
       {
         id: '7',
@@ -136,13 +136,27 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
         reason: 'Missed logging time for weekend technical review',
         submittedAt: '2024-01-18T10:00:00Z',
         reviewedAt: '2024-01-18T14:30:00Z',
-        reviewedBy: '1', // Approved by TASS
+        reviewedBy: '19', // Approved by TM Dept Head
         currentHours: 38,
         proposedHours: 41,
         justification: 'Conducted technical review over the weekend but forgot to log the time.',
         urgency: 'LOW',
         expectedImpact: 'Accurate time tracking for technical management activities',
-        submittedTo: 'TASS'
+        submittedTo: 'TM_DEPT_HEAD'
+      },
+      {
+        id: '8',
+        type: 'HOLIDAY',
+        taskId: '8',
+        userId: '15', // Carlos Martinez (TM)
+        status: 'PENDING',
+        requestedHours: 6,
+        reason: 'Weekend work for critical system deployment',
+        submittedAt: '2024-01-20T07:00:00Z',
+        justification: 'Critical system deployment scheduled for Monday requires weekend preparation and monitoring.',
+        urgency: 'CRITICAL',
+        expectedImpact: 'Ensures smooth deployment and minimizes production risks',
+        submittedTo: 'TM_DEPT_HEAD'
       }
     ];
 
@@ -153,18 +167,18 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
         // PM/TM can see engineer requests submitted to them
         return allRequests.filter(req => 
           req.submittedTo === currentUser.role && 
-          ['5', '6', '7', '8', '9', '10'].includes(req.userId) // Engineer IDs
+          ['5', '6', '7', '8', '9', '10', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29'].includes(req.userId) // Engineer IDs
         );
-      case 'PMO':
-        // PMO can see PM requests submitted to them
+      case 'PM_DEPT_HEAD':
+        // PM Dept Head can see PM requests submitted to them
         return allRequests.filter(req => 
-          req.submittedTo === 'PMO' && 
-          ['3', '4'].includes(req.userId) // PM IDs
+          req.submittedTo === 'PM_DEPT_HEAD' && 
+          ['3', '11', '12', '13'].includes(req.userId) // PM IDs
         );
-      case 'TASS':
-        // TASS can see TM requests submitted to them
+      case 'TM_DEPT_HEAD':
+        // TM Dept Head can see TM requests submitted to them
         return allRequests.filter(req => 
-          req.submittedTo === 'TASS' && 
+          req.submittedTo === 'TM_DEPT_HEAD' && 
           ['4', '14', '15', '16', '17'].includes(req.userId) // TM IDs
         );
       default:
@@ -182,7 +196,8 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
     { id: '4', title: 'API Documentation', projectName: 'Mobile App Redesign' },
     { id: '5', title: 'Database Migration', projectName: 'E-commerce Platform' },
     { id: '6', title: 'Technical Architecture Review', projectName: 'System Architecture' },
-    { id: '7', title: 'Code Quality Assessment', projectName: 'Quality Assurance' }
+    { id: '7', title: 'Code Quality Assessment', projectName: 'Quality Assurance' },
+    { id: '8', title: 'System Deployment', projectName: 'Production Release' }
   ];
 
   const mockUsers = [
@@ -194,13 +209,27 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
     { id: '8', name: 'Sophia Davis', role: 'ENGINEER' },
     { id: '9', name: 'William Garcia', role: 'ENGINEER' },
     { id: '10', name: 'Olivia Martinez', role: 'ENGINEER' },
+    { id: '11', name: 'Michael Brown', role: 'PM' },
+    { id: '12', name: 'Sarah Wilson', role: 'PM' },
+    { id: '13', name: 'Kevin Johnson', role: 'PM' },
     { id: '14', name: 'Amanda Chen', role: 'TM' },
     { id: '15', name: 'Carlos Martinez', role: 'TM' },
     { id: '16', name: 'Sophie Taylor', role: 'TM' },
-    { id: '17', name: 'Ryan Johnson', role: 'TM' }
+    { id: '17', name: 'Ryan Johnson', role: 'TM' },
+    // Sample Engineers
+    { id: '20', name: 'John Cruz', role: 'ENGINEER' },
+    { id: '21', name: 'Maria Santos', role: 'ENGINEER' },
+    { id: '22', name: 'Allan Reyes', role: 'ENGINEER' },
+    { id: '23', name: 'Kim De Vera', role: 'ENGINEER' },
+    { id: '24', name: 'Joseph Mendoza', role: 'ENGINEER' },
+    { id: '25', name: 'Ella Navarro', role: 'ENGINEER' },
+    { id: '26', name: 'Danilo Garcia', role: 'ENGINEER' },
+    { id: '27', name: 'Erika Lim', role: 'ENGINEER' },
+    { id: '28', name: 'Nico Alvarez', role: 'ENGINEER' },
+    { id: '29', name: 'Faith Domingo', role: 'ENGINEER' }
   ];
 
-  const canApprove = ['PM', 'TM', 'PMO', 'TASS'].includes(currentUser.role);
+  const canApprove = ['PM', 'TM', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role);
   const canSubmitRequest = ['PM', 'TM'].includes(currentUser.role);
 
   const getTaskInfo = (taskId: string) => {
@@ -293,9 +322,9 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
       case 'PM':
       case 'TM':
         return 'Engineer Request Approvals';
-      case 'PMO':
+      case 'PM_DEPT_HEAD':
         return 'PM Request Approvals';
-      case 'TASS':
+      case 'TM_DEPT_HEAD':
         return 'TM Request Approvals';
       default:
         return 'Approvals';
@@ -307,9 +336,9 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
       case 'PM':
       case 'TM':
         return 'Review and approve engineer timesheet requests';
-      case 'PMO':
+      case 'PM_DEPT_HEAD':
         return 'Review and approve Project Manager timesheet requests';
-      case 'TASS':
+      case 'TM_DEPT_HEAD':
         return 'Review and approve Technical Manager timesheet requests';
       default:
         return 'Review and approve timesheet requests';
@@ -324,7 +353,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">Access Restricted</h3>
         <p className="text-gray-600">
-          Only PM, TM, PMO, and TASS users can access the Approvals module.
+          Only PM, TM, PM Dept Head, and TM Dept Head users can access the Approvals module.
         </p>
       </div>
     );
