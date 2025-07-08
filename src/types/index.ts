@@ -2,9 +2,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'TASS' | 'PMO' | 'PM' | 'TM' | 'ENGINEER' | 'PM_DEPT_HEAD' | 'TM_DEPT_HEAD';
+  role: 'TASS' | 'PMO' | 'PM' | 'TM' | 'ENGINEER' | 'PM_DEPT_HEAD' | 'TM_DEPT_HEAD' | 'EEM';
   avatar?: string;
   department?: 'ITSD' | 'DIG' | 'BSD' | 'TSD';
+  salaryLevel?: 1 | 2 | 3 | 4 | 5;
+  hourlyRate?: number;
 }
 
 export interface Project {

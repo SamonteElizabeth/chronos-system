@@ -52,6 +52,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     { id: '27', name: 'Erika Lim', email: 'erika.lim@chronos.com', role: 'ENGINEER', department: 'TSD' },
     { id: '28', name: 'Nico Alvarez', email: 'nico.alvarez@chronos.com', role: 'ENGINEER', department: 'DIG' },
     { id: '29', name: 'Faith Domingo', email: 'faith.domingo@chronos.com', role: 'ENGINEER', department: 'BSD' },
+    { id: '30', name: 'Patricia Williams', email: 'patricia@chronos.com', role: 'EEM' },
   ];
 
   const handleInputChange = (field: keyof LoginForm, value: string | boolean) => {
@@ -131,6 +132,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     switch (role) {
       case 'PM_DEPT_HEAD': return 'PM Dept Head';
       case 'TM_DEPT_HEAD': return 'TM Dept Head';
+      case 'EEM': return 'EEM';
       default: return role;
     }
   };

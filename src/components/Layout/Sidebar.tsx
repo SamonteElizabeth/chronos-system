@@ -92,6 +92,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           { id: 'trackpro', label: 'TrackPro Milestone', icon: Target },
           { id: 'timesheet', label: 'Timesheet', icon: ClipboardList }
         ];
+      case 'EEM':
+        return [
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'users', label: 'Engineer Salary Levels', icon: Users }
+        ];
       default:
         return [
           { id: 'analytics', label: 'Analytics', icon: BarChart3 }
@@ -105,6 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     switch (role) {
       case 'PM_DEPT_HEAD': return 'PM Dept Head';
       case 'TM_DEPT_HEAD': return 'TM Dept Head';
+      case 'EEM': return 'EEM';
       default: return role;
     }
   };

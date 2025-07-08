@@ -36,9 +36,10 @@ interface ExtendedUser extends User {
 interface NewUserForm {
   name: string;
   email: string;
-  role: 'TASS' | 'PMO' | 'PM' | 'TM' | 'ENGINEER' | 'PM_DEPT_HEAD' | 'TM_DEPT_HEAD';
+  role: 'TASS' | 'PMO' | 'PM' | 'TM' | 'ENGINEER' | 'PM_DEPT_HEAD' | 'TM_DEPT_HEAD' | 'EEM';
   department?: 'ITSD' | 'DIG' | 'BSD' | 'TSD';
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
+  salaryLevel?: 1 | 2 | 3 | 4 | 5;
 }
 
 const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
@@ -371,7 +372,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
     }
   ]);
 
-  const canManageUsers = ['TASS', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role);
+  const canManageUsers = ['TASS', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD', 'EEM'].includes(currentUser.role);
+  const canManageSalaryLevels = currentUser.role === 'EEM';
 
   const filteredUsers = mockUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -405,6 +407,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       case 'PM': return 'bg-green-100 text-green-800';
       case 'TM': return 'bg-yellow-100 text-yellow-800';
       case 'ENGINEER': return 'bg-gray-100 text-gray-800';
+      case 'EEM': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -443,6 +446,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
     switch (role) {
       case 'PM_DEPT_HEAD': return 'PM Dept Head';
       case 'TM_DEPT_HEAD': return 'TM Dept Head';
+      case 'EEM': return 'EEM';
       default: return role;
     }
   };
@@ -466,6 +470,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       errors.department = 'Department is required for engineers';
     }
     
+    if (newUserForm.role === 'ENGINEER' && canManageSalaryLevels && !newUserForm.salaryLevel) {
+      errors.salaryLevel = 'Salary level is required for engineers';
+    }
+    
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -476,7 +484,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       email: '',
       role: 'ENGINEER',
       department: undefined,
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      salaryLevel: undefined
     });
     setFormErrors({});
     setSelectedUser(null);
@@ -514,6 +523,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
         department: newUserForm.department,
         joinDate: new Date().toISOString().split('T')[0],
         status: newUserForm.status,
+        salaryLevel: newUserForm.salaryLevel,
         lastLogin: new Date().toISOString(),
         projectsAssigned: 0
       };
@@ -546,7 +556,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
               email: newUserForm.email,
               role: newUserForm.role,
               department: newUserForm.department,
-              status: newUserForm.status
+              status: newUserForm.status,
+              salaryLevel: newUserForm.salaryLevel
             }
           : user
       ));
@@ -569,7 +580,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       email: user.email,
       role: user.role,
       department: user.department,
-      status: user.status
+      status: user.status,
+      salaryLevel: user.salaryLevel
     });
     setIsEditUserModalOpen(true);
   };
@@ -605,7 +617,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">Access Restricted</h3>
         <p className="text-gray-600">
-          Only TASS, PM Dept Head, and TM Dept Head users can access the User Management module.
+          Only TASS, PM Dept Head, TM Dept Head, and EEM users can access the User Management module.
         </p>
       </div>
     );
@@ -616,17 +628,26 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage system users, roles, and permissions</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {canManageSalaryLevels ? 'Engineer Salary Levels' : 'User Management'}
+          </h1>
+          <p className="text-gray-600">
+            {canManageSalaryLevels 
+              ? 'Manage engineer salary levels and hourly rates'
+              : 'Manage system users, roles, and permissions'
+            }
+          </p>
         </div>
         
-        <button 
-          onClick={() => setIsAddUserModalOpen(true)}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add User</span>
-        </button>
+        {!canManageSalaryLevels && (
+          <button 
+            onClick={() => setIsAddUserModalOpen(true)}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add User</span>
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -696,6 +717,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
             <option value="PM">PM</option>
             <option value="TM">TM</option>
             <option value="ENGINEER">Engineer</option>
+            <option value="EEM">EEM</option>
           </select>
 
           {/* Status Filter */}
@@ -741,8 +763,15 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       {/* Users Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">System Users</h3>
-          <p className="text-sm text-gray-600">Manage user accounts, roles, and access permissions</p>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {canManageSalaryLevels ? 'Engineer Salary Management' : 'System Users'}
+          </h3>
+          <p className="text-sm text-gray-600">
+            {canManageSalaryLevels 
+              ? 'Set and manage engineer salary levels and hourly rates'
+              : 'Manage user accounts, roles, and access permissions'
+            }
+          </p>
         </div>
         
         <div className="overflow-x-auto">
@@ -755,6 +784,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role & Department
                 </th>
+                {canManageSalaryLevels && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Salary Level
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -764,16 +798,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Last Login
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Join Date
-                </th>
+                {!canManageSalaryLevels && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Join Date
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
+              {filteredUsers.filter(user => canManageSalaryLevels ? user.role === 'ENGINEER' : true).map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -805,6 +841,35 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                       )}
                     </div>
                   </td>
+                  {canManageSalaryLevels && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.role === 'ENGINEER' ? (
+                        <div className="space-y-1">
+                          <div className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            user.salaryLevel === 5 ? 'bg-purple-100 text-purple-800' :
+                            user.salaryLevel === 4 ? 'bg-blue-100 text-blue-800' :
+                            user.salaryLevel === 3 ? 'bg-green-100 text-green-800' :
+                            user.salaryLevel === 2 ? 'bg-yellow-100 text-yellow-800' :
+                            user.salaryLevel === 1 ? 'bg-orange-100 text-orange-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            Level {user.salaryLevel || 'Not Set'}
+                          </div>
+                          {user.salaryLevel && (
+                            <div className="text-xs text-gray-500">
+                              {user.salaryLevel === 1 && '$800-1000'}
+                              {user.salaryLevel === 2 && '$1000-2000'}
+                              {user.salaryLevel === 3 && '$2000-3000'}
+                              {user.salaryLevel === 4 && '$3000-4000'}
+                              {user.salaryLevel === 5 && '$4000+'}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">N/A</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className={`flex items-center space-x-1 px-2 py-1 rounded-full border ${getStatusColor(user.status)}`}>
                       {getStatusIcon(user.status)}
@@ -818,36 +883,42 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                     <div>{new Date(user.lastLogin).toLocaleDateString()}</div>
                     <div className="text-xs">{new Date(user.lastLogin).toLocaleTimeString()}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(user.joinDate).toLocaleDateString()}
-                  </td>
+                  {!canManageSalaryLevels && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(user.joinDate).toLocaleDateString()}
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleEditClick(user)}
                         className="text-blue-600 hover:text-blue-900 transition-colors"
-                        title="Edit User"
+                        title={canManageSalaryLevels ? "Edit Salary Level" : "Edit User"}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleStatusToggle(user)}
-                        className={`transition-colors ${
-                          user.status === 'ACTIVE' 
-                            ? 'text-red-600 hover:text-red-900' 
-                            : 'text-green-600 hover:text-green-900'
-                        }`}
-                        title={user.status === 'ACTIVE' ? 'Deactivate User' : 'Activate User'}
-                      >
-                        {user.status === 'ACTIVE' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
-                        title="Delete User"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {!canManageSalaryLevels && (
+                        <>
+                          <button
+                            onClick={() => handleStatusToggle(user)}
+                            className={`transition-colors ${
+                              user.status === 'ACTIVE' 
+                                ? 'text-red-600 hover:text-red-900' 
+                                : 'text-green-600 hover:text-green-900'
+                            }`}
+                            title={user.status === 'ACTIVE' ? 'Deactivate User' : 'Activate User'}
+                          >
+                            {user.status === 'ACTIVE' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete User"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -963,6 +1034,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                     <option value="TM_DEPT_HEAD">TM Dept Head</option>
                     <option value="PM_DEPT_HEAD">PM Dept Head</option>
                     <option value="TASS">TASS</option>
+                    <option value="EEM">EEM</option>
                   </select>
                 </div>
 
@@ -991,6 +1063,36 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                     </select>
                     {formErrors.department && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.department}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Salary Level - Only for Engineers when EEM is managing */}
+                {newUserForm.role === 'ENGINEER' && canManageSalaryLevels && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Salary Level *
+                    </label>
+                    <select
+                      value={newUserForm.salaryLevel || ''}
+                      onChange={(e) => setNewUserForm(prev => ({ 
+                        ...prev, 
+                        salaryLevel: parseInt(e.target.value) as NewUserForm['salaryLevel']
+                      }))}
+                      disabled={isSubmitting}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                        formErrors.salaryLevel ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <option value="">Select Salary Level</option>
+                      <option value="1">Level 1 ($800-1000)</option>
+                      <option value="2">Level 2 ($1000-2000)</option>
+                      <option value="3">Level 3 ($2000-3000)</option>
+                      <option value="4">Level 4 ($3000-4000)</option>
+                      <option value="5">Level 5 ($4000+)</option>
+                    </select>
+                    {formErrors.salaryLevel && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.salaryLevel}</p>
                     )}
                   </div>
                 )}
@@ -1152,6 +1254,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                     <option value="TM_DEPT_HEAD">TM Dept Head</option>
                     <option value="PM_DEPT_HEAD">PM Dept Head</option>
                     <option value="TASS">TASS</option>
+                    <option value="EEM">EEM</option>
                   </select>
                 </div>
 
@@ -1180,6 +1283,36 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                     </select>
                     {formErrors.department && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.department}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Salary Level - Only for Engineers when EEM is managing */}
+                {newUserForm.role === 'ENGINEER' && canManageSalaryLevels && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Salary Level *
+                    </label>
+                    <select
+                      value={newUserForm.salaryLevel || ''}
+                      onChange={(e) => setNewUserForm(prev => ({ 
+                        ...prev, 
+                        salaryLevel: parseInt(e.target.value) as NewUserForm['salaryLevel']
+                      }))}
+                      disabled={isSubmitting}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                        formErrors.salaryLevel ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <option value="">Select Salary Level</option>
+                      <option value="1">Level 1 ($800-1000)</option>
+                      <option value="2">Level 2 ($1000-2000)</option>
+                      <option value="3">Level 3 ($2000-3000)</option>
+                      <option value="4">Level 4 ($3000-4000)</option>
+                      <option value="5">Level 5 ($4000+)</option>
+                    </select>
+                    {formErrors.salaryLevel && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.salaryLevel}</p>
                     )}
                   </div>
                 )}
