@@ -474,7 +474,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
             value={departmentFilter}
             onChange={(e) => setDepartmentFilter(e.target.value)}
             className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          > } }
+           }`}
+          > 
             <option value="ALL">All Departments</option>
             <option value="ITSD">ITSD</option>
             <option value="DIG">DIG</option>
