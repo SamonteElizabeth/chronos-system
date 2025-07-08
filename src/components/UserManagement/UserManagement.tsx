@@ -245,3 +245,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       managers: mockUsers.filter(u => ['PM', 'TM', 'PMO', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(u.role)).length
     };
   };
+
+  return null; // Placeholder for the actual JSX content
+};
+
+export default UserManagement;
