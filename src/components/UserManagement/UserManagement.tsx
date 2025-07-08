@@ -702,13 +702,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                     onChange={(e) => setNewUserForm(prev => ({ ...prev, department: e.target.value as any }))}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       formErrors.department ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Select Department</option>
-                    <option value="ITSD">Information Technology Services Department (ITSD)</option>
-                    <option value="DIG">Digital Innovation Group (DIG)</option>
-                    <option value="BSD">Business Solutions Department (BSD)</option>
-                    <option value="TSD">Technical Support Department (TSD)</option>
+                    }`  
                   </select>
                   {formErrors.department && (
                     <p className="mt-1 text-sm text-red-600">{formErrors.department}</p>
