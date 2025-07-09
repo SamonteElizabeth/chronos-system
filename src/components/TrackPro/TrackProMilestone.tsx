@@ -12,7 +12,11 @@ import {
   Filter,
   Search,
   SortAsc,
-  SortDesc
+  SortDesc,
+  ChevronLeft,
+  Play,
+  Pause,
+  MapPin
 } from 'lucide-react';
 import { User as UserType, Project, Task } from '../../types';
 
@@ -50,6 +54,24 @@ interface TaskProgress {
   daysOverdue?: number;
 }
 
+interface CalendarTask {
+  id: string;
+  title: string;
+  projectName: string;
+  status: 'PENDING' | 'ONGOING' | 'COMPLETED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  startDate: string;
+  dueDate: string;
+  estimatedHours: number;
+  actualHours: number;
+  progress: number;
+  isOverdue: boolean;
+  daysOverdue?: number;
+  isStartDate?: boolean;
+  isDueDate?: boolean;
+  isSpanning?: boolean;
+}
+
 const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) => {
   const [selectedEngineer, setSelectedEngineer] = useState<string>('all');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
@@ -58,6 +80,7 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
   const [sortBy, setSortBy] = useState<'name' | 'department' | 'date' | 'progress'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // Sample Engineers with Departments
   const sampleEngineers = [
@@ -79,32 +102,6 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
   const isEngineerView = currentUser.role === 'ENGINEER';
   const canViewAllEngineers = ['TASS', 'PMO', 'TM', 'PM', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role);
 
-  // Calculate timeline boundaries (60 days from today - 30 before, 30 after)
-  const getTimelineBounds = () => {
-    const today = new Date();
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 30); // 30 days before today
-    const endDate = new Date(today);
-    endDate.setDate(today.getDate() + 30); // 30 days after today
-    return { startDate, endDate };
-  };
-
-  // Calculate position and duration for Gantt chart
-  const calculateGanttPosition = (taskStartDate: string, taskDueDate: string) => {
-    const { startDate: timelineStart, endDate: timelineEnd } = getTimelineBounds();
-    const taskStart = new Date(taskStartDate);
-    const taskEnd = new Date(taskDueDate);
-    
-    const timelineTotal = timelineEnd.getTime() - timelineStart.getTime();
-    const taskStartOffset = taskStart.getTime() - timelineStart.getTime();
-    const taskDuration = taskEnd.getTime() - taskStart.getTime();
-    
-    const startPosition = Math.max(0, (taskStartOffset / timelineTotal) * 100);
-    const duration = Math.min(100 - startPosition, (taskDuration / timelineTotal) * 100);
-    
-    return { startPosition, duration };
-  };
-
   // Check if task is overdue
   const isTaskOverdue = (dueDate: string, status: string): boolean => {
     if (status === 'COMPLETED') return false;
@@ -119,16 +116,459 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Generate mock engineer progress data with multiple tasks per engineer
+  // Generate mock engineer tasks for calendar
+  const generateEngineerTasks = (): CalendarTask[] => {
+    const engineerId = isEngineerView ? currentUser.id : '20'; // Default to first engineer for demo
+    
+    return [
+      {
+        id: `${engineerId}-1`,
+        title: 'User Authentication System',
+        projectName: 'E-commerce Platform',
+        status: 'ONGOING',
+        priority: 'HIGH',
+        startDate: '2024-12-15',
+        dueDate: '2024-12-28',
+        estimatedHours: 40,
+        actualHours: 28,
+        progress: 70,
+        isOverdue: false
+      },
+      {
+        id: `${engineerId}-2`,
+        title: 'Payment Gateway Integration',
+        projectName: 'E-commerce Platform',
+        status: 'PENDING',
+        priority: 'CRITICAL',
+        startDate: '2024-12-20',
+        dueDate: '2025-01-05',
+        estimatedHours: 32,
+        actualHours: 0,
+        progress: 0,
+        isOverdue: false
+      },
+      {
+        id: `${engineerId}-3`,
+        title: 'Mobile UI Components',
+        projectName: 'Mobile App Redesign',
+        status: 'COMPLETED',
+        priority: 'MEDIUM',
+        startDate: '2024-12-01',
+        dueDate: '2024-12-12',
+        estimatedHours: 24,
+        actualHours: 26,
+        progress: 100,
+        isOverdue: false
+      },
+      {
+        id: `${engineerId}-4`,
+        title: 'API Documentation',
+        projectName: 'Mobile App Redesign',
+        status: 'ONGOING',
+        priority: 'LOW',
+        startDate: '2024-12-10',
+        dueDate: '2024-12-18',
+        estimatedHours: 16,
+        actualHours: 8,
+        progress: 50,
+        isOverdue: isTaskOverdue('2024-12-18', 'ONGOING'),
+        daysOverdue: isTaskOverdue('2024-12-18', 'ONGOING') ? getDaysOverdue('2024-12-18') : undefined
+      },
+      {
+        id: `${engineerId}-5`,
+        title: 'Database Migration',
+        projectName: 'API Integration',
+        status: 'PENDING',
+        priority: 'HIGH',
+        startDate: '2025-01-02',
+        dueDate: '2025-01-15',
+        estimatedHours: 35,
+        actualHours: 0,
+        progress: 0,
+        isOverdue: false
+      }
+    ].map(task => ({
+      ...task,
+      isOverdue: isTaskOverdue(task.dueDate, task.status),
+      daysOverdue: isTaskOverdue(task.dueDate, task.status) ? getDaysOverdue(task.dueDate) : undefined
+    }));
+  };
+
+  const engineerTasks = generateEngineerTasks();
+
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const getMonthName = (date: Date) => {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const isToday = (day: number) => {
+    const today = new Date();
+    return today.getDate() === day && 
+           today.getMonth() === currentDate.getMonth() && 
+           today.getFullYear() === currentDate.getFullYear();
+  };
+
+  const getTasksForDate = (day: number): CalendarTask[] => {
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    return engineerTasks.filter(task => {
+      const taskStart = new Date(task.startDate);
+      const taskEnd = new Date(task.dueDate);
+      const currentDateObj = new Date(dateStr);
+      
+      return currentDateObj >= taskStart && currentDateObj <= taskEnd;
+    }).map(task => {
+      const taskStart = new Date(task.startDate);
+      const taskEnd = new Date(task.dueDate);
+      const currentDateObj = new Date(dateStr);
+      
+      return {
+        ...task,
+        isStartDate: taskStart.toDateString() === currentDateObj.toDateString(),
+        isDueDate: taskEnd.toDateString() === currentDateObj.toDateString(),
+        isSpanning: currentDateObj > taskStart && currentDateObj < taskEnd
+      };
+    });
+  };
+
+  const getStatusColor = (status: string, isOverdue: boolean = false) => {
+    if (isOverdue) {
+      return 'bg-red-500 text-white border-red-600';
+    }
+    
+    switch (status) {
+      case 'COMPLETED': return 'bg-green-500 text-white border-green-600';
+      case 'ONGOING': return 'bg-blue-500 text-white border-blue-600';
+      case 'PENDING': return 'bg-purple-500 text-white border-purple-600';
+      default: return 'bg-gray-400 text-white border-gray-500';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'CRITICAL': return 'border-l-4 border-l-red-600';
+      case 'HIGH': return 'border-l-4 border-l-orange-500';
+      case 'MEDIUM': return 'border-l-4 border-l-yellow-500';
+      case 'LOW': return 'border-l-4 border-l-green-500';
+      default: return 'border-l-4 border-l-gray-400';
+    }
+  };
+
+  const getTaskIcon = (task: CalendarTask) => {
+    if (task.isStartDate && task.isDueDate) {
+      return <Target className="w-3 h-3" />; // Single day task
+    } else if (task.isStartDate) {
+      return <Play className="w-3 h-3" />; // Start date
+    } else if (task.isDueDate) {
+      return <Target className="w-3 h-3" />; // Due date
+    } else {
+      return <Clock className="w-3 h-3" />; // Spanning task
+    }
+  };
+
+  const getTaskLabel = (task: CalendarTask) => {
+    if (task.isStartDate && task.isDueDate) {
+      return 'START & DUE';
+    } else if (task.isStartDate) {
+      return 'START';
+    } else if (task.isDueDate) {
+      return 'DUE';
+    } else {
+      return 'ONGOING';
+    }
+  };
+
+  // Generate calendar days
+  const generateCalendarDays = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const days = [];
+
+    // Empty cells for days before the first day of the month
+    for (let i = 0; i < firstDay; i++) {
+      days.push(
+        <div key={`empty-${i}`} className="h-32 bg-gray-50 border border-gray-200"></div>
+      );
+    }
+
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const tasksForDay = getTasksForDate(day);
+      const isCurrentDay = isToday(day);
+
+      days.push(
+        <div 
+          key={day} 
+          className={`h-32 border border-gray-200 p-1 overflow-y-auto ${
+            isCurrentDay ? 'bg-blue-50 border-blue-300' : 'bg-white'
+          }`}
+        >
+          <div className={`text-sm font-semibold mb-1 ${
+            isCurrentDay ? 'text-blue-700' : 'text-gray-700'
+          }`}>
+            {day}
+            {isCurrentDay && (
+              <span className="ml-1 text-xs bg-blue-500 text-white px-1 rounded">TODAY</span>
+            )}
+          </div>
+          
+          <div className="space-y-1">
+            {tasksForDay.slice(0, 3).map((task, index) => (
+              <div
+                key={`${task.id}-${day}`}
+                className={`text-xs p-1 rounded-sm cursor-pointer hover:opacity-80 transition-opacity ${
+                  getStatusColor(task.status, task.isOverdue)
+                } ${getPriorityColor(task.priority)}`}
+                title={`${task.title} - ${task.projectName}\nStatus: ${task.status}\nPriority: ${task.priority}\nProgress: ${task.progress}%${
+                  task.isOverdue ? `\nOverdue by ${task.daysOverdue} days` : ''
+                }`}
+              >
+                <div className="flex items-center space-x-1">
+                  {getTaskIcon(task)}
+                  <span className="font-medium text-xs">{getTaskLabel(task)}</span>
+                  {task.isOverdue && <ExclamationTriangle className="w-3 h-3 animate-pulse" />}
+                </div>
+                <div className="truncate font-medium">{task.title}</div>
+                <div className="truncate text-xs opacity-90">{task.projectName}</div>
+                <div className="text-xs opacity-90">{task.progress}% complete</div>
+              </div>
+            ))}
+            
+            {tasksForDay.length > 3 && (
+              <div className="text-xs text-gray-500 font-medium">
+                +{tasksForDay.length - 3} more tasks
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return days;
+  };
+
+  const getOverallStats = () => {
+    const totalTasks = engineerTasks.length;
+    const completedTasks = engineerTasks.filter(t => t.status === 'COMPLETED').length;
+    const ongoingTasks = engineerTasks.filter(t => t.status === 'ONGOING').length;
+    const pendingTasks = engineerTasks.filter(t => t.status === 'PENDING').length;
+    const overdueTasks = engineerTasks.filter(t => t.isOverdue).length;
+    const totalHours = engineerTasks.reduce((sum, t) => sum + t.actualHours, 0);
+
+    return {
+      totalTasks,
+      completedTasks,
+      ongoingTasks,
+      pendingTasks,
+      overdueTasks,
+      totalHours
+    };
+  };
+
+  const stats = getOverallStats();
+
+  // If engineer view, show calendar
+  if (isEngineerView) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">TRACKPRO MILESTONE</h1>
+            <p className="text-gray-600">
+              Your task calendar - Track your assignments with start dates and deadlines
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{stats.totalTasks}</div>
+                <div className="text-sm text-gray-600">Total Tasks</div>
+              </div>
+              <Target className="w-8 h-8 text-blue-500" />
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+            <div className="text-2xl font-bold text-green-600">{stats.completedTasks}</div>
+            <div className="text-sm text-gray-600">Finished</div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+            <div className="text-2xl font-bold text-blue-600">{stats.ongoingTasks}</div>
+            <div className="text-sm text-gray-600">In Progress</div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+            <div className="text-2xl font-bold text-purple-600">{stats.pendingTasks}</div>
+            <div className="text-sm text-gray-600">Pending</div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+            <div className="text-2xl font-bold text-red-600">{stats.overdueTasks}</div>
+            <div className="text-sm text-gray-600">Overdue</div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+            <div className="text-2xl font-bold text-indigo-600">{stats.totalHours}h</div>
+            <div className="text-sm text-gray-600">Hours Logged</div>
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Calendar Header */}
+          <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigateMonth('prev')}
+                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <h2 className="text-2xl font-bold text-gray-900">{getMonthName(currentDate)}</h2>
+                <button
+                  onClick={() => navigateMonth('next')}
+                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Task Calendar View</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Days of Week Header */}
+          <div className="grid grid-cols-7 bg-gray-100 border-b border-gray-200">
+            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+              <div key={day} className="p-3 text-center text-sm font-semibold text-gray-700 border-r border-gray-200 last:border-r-0">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7">
+            {generateCalendarDays()}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Task Status Legend */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Task Status & Icons</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1 bg-purple-500 text-white px-2 py-1 rounded text-xs">
+                    <Clock className="w-3 h-3" />
+                    <span>ONGOING</span>
+                  </div>
+                  <span className="text-purple-600 font-medium">Task in progress</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                    <Play className="w-3 h-3" />
+                    <span>START</span>
+                  </div>
+                  <span className="text-blue-600 font-medium">Task start date</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                    <Target className="w-3 h-3" />
+                    <span>DUE</span>
+                  </div>
+                  <span className="text-green-600 font-medium">Task due date</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1 bg-red-500 text-white px-2 py-1 rounded text-xs animate-pulse">
+                    <ExclamationTriangle className="w-3 h-3" />
+                    <span>OVERDUE</span>
+                  </div>
+                  <span className="text-red-600 font-medium">Task is overdue</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Priority Legend */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Priority Indicators</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-3">
+                  <div className="w-4 h-4 border-l-4 border-l-red-600 bg-gray-100"></div>
+                  <span className="text-red-600 font-medium">Critical Priority</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-4 h-4 border-l-4 border-l-orange-500 bg-gray-100"></div>
+                  <span className="text-orange-600 font-medium">High Priority</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-4 h-4 border-l-4 border-l-yellow-500 bg-gray-100"></div>
+                  <span className="text-yellow-600 font-medium">Medium Priority</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-4 h-4 border-l-4 border-l-green-500 bg-gray-100"></div>
+                  <span className="text-green-600 font-medium">Low Priority</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-start space-x-2">
+              <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div className="text-sm text-blue-800">
+                <div className="font-medium mb-1">Calendar Navigation</div>
+                <div>
+                  Click the arrow buttons to navigate between months. Today's date is highlighted in blue. 
+                  Hover over any task to see detailed information including progress and deadlines.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // For non-engineer users, show the original Gantt chart view
   const generateEngineerProgress = (): EngineerProgress[] => {
-    const engineersToShow = isEngineerView 
-      ? sampleEngineers.filter(eng => eng.id === currentUser.id)
-      : sampleEngineers.filter(eng => {
-          const matchesEngineer = selectedEngineer === 'all' || eng.id === selectedEngineer;
-          const matchesDepartment = selectedDepartment === 'all' || eng.department === selectedDepartment;
-          const matchesSearch = searchTerm === '' || eng.name.toLowerCase().includes(searchTerm.toLowerCase());
-          return matchesEngineer && matchesDepartment && matchesSearch;
-        });
+    const engineersToShow = sampleEngineers.filter(eng => {
+      const matchesEngineer = selectedEngineer === 'all' || eng.id === selectedEngineer;
+      const matchesDepartment = selectedDepartment === 'all' || eng.department === selectedDepartment;
+      const matchesSearch = searchTerm === '' || eng.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesEngineer && matchesDepartment && matchesSearch;
+    });
 
     return engineersToShow.map(engineer => {
       // Generate multiple tasks per engineer
@@ -229,20 +669,33 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
     });
   };
 
-  const engineerProgressData = generateEngineerProgress();
-
-  const getStatusColor = (status: string, isOverdue: boolean = false) => {
-    if (isOverdue) {
-      return 'bg-red-500'; // Red for overdue
-    }
-    
-    switch (status) {
-      case 'COMPLETED': return 'bg-green-500';
-      case 'ONGOING': return 'bg-blue-500';
-      case 'PENDING': return 'bg-purple-500';
-      default: return 'bg-gray-400';
-    }
+  // Calculate timeline boundaries (60 days from today - 30 before, 30 after)
+  const getTimelineBounds = () => {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 30); // 30 days before today
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + 30); // 30 days after today
+    return { startDate, endDate };
   };
+
+  // Calculate position and duration for Gantt chart
+  const calculateGanttPosition = (taskStartDate: string, taskDueDate: string) => {
+    const { startDate: timelineStart, endDate: timelineEnd } = getTimelineBounds();
+    const taskStart = new Date(taskStartDate);
+    const taskEnd = new Date(taskDueDate);
+    
+    const timelineTotal = timelineEnd.getTime() - timelineStart.getTime();
+    const taskStartOffset = taskStart.getTime() - timelineStart.getTime();
+    const taskDuration = taskEnd.getTime() - taskStart.getTime();
+    
+    const startPosition = Math.max(0, (taskStartOffset / timelineTotal) * 100);
+    const duration = Math.min(100 - startPosition, (taskDuration / timelineTotal) * 100);
+    
+    return { startPosition, duration };
+  };
+
+  const engineerProgressData = generateEngineerProgress();
 
   const getStatusLabel = (status: string, isOverdue: boolean = false, daysOverdue?: number) => {
     if (isOverdue) {
@@ -312,7 +765,6 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
         
         const daysInMonth = Math.ceil((monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         const monthName = monthStart.toLocaleDateString('en', { month: 'long' }).toUpperCase();
-        const isCurrentMonth = new Date().getMonth() === monthStart.getMonth();
         
         // Alternate colors for months
         const monthColor = monthStart.getMonth() % 2 === 0 ? 'bg-blue-500' : 'bg-red-500';
@@ -338,7 +790,7 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
     return months;
   };
 
-  const getOverallStats = () => {
+  const getOverallStatsForManagers = () => {
     const totalEngineers = engineerProgressData.length;
     const totalTasks = engineerProgressData.reduce((sum, eng) => sum + eng.tasks.length, 0);
     const totalCompleted = engineerProgressData.reduce((sum, eng) => sum + eng.completedTasks, 0);
@@ -356,7 +808,7 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
     };
   };
 
-  const stats = getOverallStats();
+  const managerStats = getOverallStatsForManagers();
 
   const handleSort = (field: typeof sortBy) => {
     if (sortBy === field) {
@@ -374,10 +826,7 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">TRACKPRO MILESTONE</h1>
           <p className="text-gray-600">
-            {isEngineerView 
-              ? 'Track your task progress with daily timeline'
-              : 'Monitor engineer progress with daily Gantt chart and advanced filtering'
-            }
+            Monitor engineer progress with daily Gantt chart and advanced filtering
           </p>
         </div>
       </div>
@@ -387,7 +836,7 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.totalEngineers}</div>
+              <div className="text-2xl font-bold text-gray-900">{managerStats.totalEngineers}</div>
               <div className="text-sm text-gray-600">Engineers</div>
             </div>
             <Users className="w-8 h-8 text-blue-500" />
@@ -395,27 +844,27 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
         </div>
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl font-bold text-gray-900">{stats.totalTasks}</div>
+          <div className="text-2xl font-bold text-gray-900">{managerStats.totalTasks}</div>
           <div className="text-sm text-gray-600">Total Tasks</div>
         </div>
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl font-bold text-green-600">{stats.totalCompleted}</div>
+          <div className="text-2xl font-bold text-green-600">{managerStats.totalCompleted}</div>
           <div className="text-sm text-gray-600">Finished</div>
         </div>
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl font-bold text-blue-600">{stats.totalOngoing}</div>
+          <div className="text-2xl font-bold text-blue-600">{managerStats.totalOngoing}</div>
           <div className="text-sm text-gray-600">In Progress</div>
         </div>
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl font-bold text-purple-600">{stats.totalPending}</div>
+          <div className="text-2xl font-bold text-purple-600">{managerStats.totalPending}</div>
           <div className="text-sm text-gray-600">Pending</div>
         </div>
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl font-bold text-red-600">{stats.totalOverdue}</div>
+          <div className="text-2xl font-bold text-red-600">{managerStats.totalOverdue}</div>
           <div className="text-sm text-gray-600">Overdue</div>
         </div>
       </div>
