@@ -137,7 +137,7 @@ const PMAssignments: React.FC<PMAssignmentsProps> = ({ currentUser }) => {
       startDate: '2024-04-01',
       endDate: '2024-07-30',
       progress: 0,
-      budget: 180000,
+      budget: 180000, // in peso
       spentBudget: 0,
       salesOrderNo: 'SO-2024-006',
       clientCompanyName: 'StartupCorp',
@@ -154,7 +154,7 @@ const PMAssignments: React.FC<PMAssignmentsProps> = ({ currentUser }) => {
       startDate: '2024-05-01',
       endDate: '2024-09-15',
       progress: 0,
-      budget: 220000,
+      budget: 220000, // in peso
       spentBudget: 0,
       salesOrderNo: 'SO-2024-007',
       clientCompanyName: 'FutureTech',
@@ -171,7 +171,7 @@ const PMAssignments: React.FC<PMAssignmentsProps> = ({ currentUser }) => {
       startDate: '2024-03-15',
       endDate: '2024-06-20',
       progress: 0,
-      budget: 150000,
+      budget: 150000, // in peso
       spentBudget: 0,
       salesOrderNo: 'SO-2024-008',
       clientCompanyName: 'OldCorp Banking',
@@ -724,7 +724,7 @@ const PMAssignments: React.FC<PMAssignmentsProps> = ({ currentUser }) => {
                           <div><strong>Solution:</strong> {selectedProject.solution}</div>
                           <div><strong>Mandays:</strong> {selectedProject.sowMandays}</div>
                           <div><strong>Deadline:</strong> {new Date(selectedProject.endDate).toLocaleDateString()}</div>
-                          <div><strong>Budget:</strong> ${selectedProject.budget.toLocaleString()}</div>
+                          <div><strong>Budget:</strong> ₱{selectedProject.budget.toLocaleString()}</div>
                         </div>
                       ) : null;
                     })()}

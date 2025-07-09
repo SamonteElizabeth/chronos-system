@@ -857,11 +857,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                           </div>
                           {user.salaryLevel && (
                             <div className="text-xs text-gray-500">
-                              {user.salaryLevel === 1 && '$800-1000'}
-                              {user.salaryLevel === 2 && '$1000-2000'}
-                              {user.salaryLevel === 3 && '$2000-3000'}
-                              {user.salaryLevel === 4 && '$3000-4000'}
-                              {user.salaryLevel === 5 && '$4000+'}
+                              {user.salaryLevel === 1 && '₱800-1000'}
+                              {user.salaryLevel === 2 && '₱1000-2000'}
+                              {user.salaryLevel === 3 && '₱2000-3000'}
+                              {user.salaryLevel === 4 && '₱3000-4000'}
+                              {user.salaryLevel === 5 && '₱4000+'}
                             </div>
                           )}
                         </div>
@@ -1085,11 +1085,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                       } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <option value="">Select Salary Level</option>
-                      <option value="1">Level 1 ($800-1000)</option>
-                      <option value="2">Level 2 ($1000-2000)</option>
-                      <option value="3">Level 3 ($2000-3000)</option>
-                      <option value="4">Level 4 ($3000-4000)</option>
-                      <option value="5">Level 5 ($4000+)</option>
+                      <option value="1">Level 1 (₱800-1000)</option>
+                      <option value="2">Level 2 (₱1000-2000)</option>
+                      <option value="3">Level 3 (₱2000-3000)</option>
+                      <option value="4">Level 4 (₱3000-4000)</option>
+                      <option value="5">Level 5 (₱4000+)</option>
                     </select>
                     {formErrors.salaryLevel && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.salaryLevel}</p>
@@ -1305,11 +1305,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                       } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <option value="">Select Salary Level</option>
-                      <option value="1">Level 1 ($800-1000)</option>
-                      <option value="2">Level 2 ($1000-2000)</option>
-                      <option value="3">Level 3 ($2000-3000)</option>
-                      <option value="4">Level 4 ($3000-4000)</option>
-                      <option value="5">Level 5 ($4000+)</option>
+                      <option value="1">Level 1 (₱800-1000)</option>
+                      <option value="2">Level 2 (₱1000-2000)</option>
+                      <option value="3">Level 3 (₱2000-3000)</option>
+                      <option value="4">Level 4 (₱3000-4000)</option>
+                      <option value="5">Level 5 (₱4000+)</option>
                     </select>
                     {formErrors.salaryLevel && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.salaryLevel}</p>
