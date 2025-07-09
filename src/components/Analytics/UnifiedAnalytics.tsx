@@ -60,11 +60,11 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
   // Calculate hourly rate based on salary level
   const getHourlyRateFromLevel = (level: number): number => {
     switch (level) {
-      case 1: return 900; // Average of 800-1000
-      case 2: return 1500; // Average of 1000-2000
-      case 3: return 2500; // Average of 2000-3000
-      case 4: return 3500; // Average of 3000-4000
-      case 5: return 4500; // 4000+
+      case 1: return 900; // Average of ₱800-1000
+      case 2: return 1500; // Average of ₱1000-2000
+      case 3: return 2500; // Average of ₱2000-3000
+      case 4: return 3500; // Average of ₱3000-4000
+      case 5: return 4500; // ₱4000+
       default: return 1000;
     }
   };
@@ -513,7 +513,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
                 {viewMode === 'hourly' 
-                  ? `$${Math.round(filteredEngineers.reduce((sum, eng) => sum + getHourlyRateFromLevel(eng.salaryLevel), 0) / filteredEngineers.length)}`
+                  ? `₱${Math.round(filteredEngineers.reduce((sum, eng) => sum + getHourlyRateFromLevel(eng.salaryLevel), 0) / filteredEngineers.length)}`
                   : `${Math.round(filteredEngineers.reduce((sum, eng) => sum + getMandays(eng.hoursLogged), 0))}`
                 }
               </div>
@@ -567,7 +567,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                         </span>
                         <span className="text-xs text-gray-500">{engineer.department}</span>
                         <span className="text-gray-600">
-                          {viewMode === 'hourly' ? `$${hourlyRate}/hr` : `${mandays} days`}
+                          {viewMode === 'hourly' ? `₱${hourlyRate}/hr` : `${mandays} days`}
                         </span>
                         <span className="text-gray-600">
                           {viewMode === 'hourly' ? `${engineer.hoursLogged}h` : `${engineer.hoursLogged}h total`}
