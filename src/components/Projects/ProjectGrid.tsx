@@ -215,7 +215,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ currentUser }) => {
       startDate: data.startDate,
       endDate: data.endDate,
       progress: 0,
-      budget: data.sowMandays * 1000, // Rough calculation
+      budget: data.sowMandays * 1000, // Rough calculation in peso
       spentBudget: 0,
       salesOrderNo: data.salesOrderNo,
       clientCompanyName: data.clientCompanyName,
