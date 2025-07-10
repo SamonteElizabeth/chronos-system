@@ -171,9 +171,6 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
         remarks: '',
         attachments: [],
         completionDate: new Date().toISOString().split('T')[0],
-        actualHoursSpent: task?.actualHours || 0,
-        challenges: '',
-        nextSteps: ''
       });
       setAttachmentPreviews([]);
       setErrors({});
