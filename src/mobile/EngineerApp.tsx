@@ -36,9 +36,6 @@ interface TaskCompletionData {
   remarks: string;
   attachments: File[];
   completionDate: string;
-  actualHoursSpent: number;
-  challenges: string;
-  nextSteps: string;
 }
 
 const EngineerApp: React.FC<EngineerAppProps> = ({ currentUser, onLogout }) => {
