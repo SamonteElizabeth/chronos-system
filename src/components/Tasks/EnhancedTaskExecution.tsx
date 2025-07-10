@@ -28,9 +28,6 @@ interface TaskCompletionData {
   remarks: string;
   attachments: File[];
   completionDate: string;
-  actualHoursSpent: number;
-  challenges: string;
-  nextSteps: string;
 }
 
 const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUser }) => {
