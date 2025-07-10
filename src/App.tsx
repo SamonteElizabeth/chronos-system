@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X, Bell, Settings } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import LoginPage from './components/Auth/LoginPage';
+import MobileAppSelector from './mobile/MobileAppSelector';
 import Sidebar from './components/Layout/Sidebar';
 import UnifiedAnalytics from './components/Analytics/UnifiedAnalytics';
 import ProjectGrid from './components/Projects/ProjectGrid';
@@ -21,6 +22,7 @@ function App() {
   const { currentUser, isLoading, isAuthenticated, login, switchUser, logout, allUsers } = useAuth();
   const [activeModule, setActiveModule] = useState('analytics');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   // Mock task data
   const mockTasks: Task[] = [
@@ -111,6 +113,17 @@ function App() {
     return <LoginPage onLogin={login} />;
   }
 
+  // Show mobile app selector if in mobile view
+  if (isMobileView) {
+    return (
+      <MobileAppSelector
+        currentUser={currentUser}
+        onLogout={logout}
+        onBackToDesktop={() => setIsMobileView(false)}
+      />
+    );
+  }
+
   const renderActiveModule = () => {
     switch (activeModule) {
       case 'analytics':
@@ -183,6 +196,19 @@ function App() {
               <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <Settings className="w-5 h-5" />
               </button>
+
+              {/* Mobile App Button */}
+              {(['ENGINEER', 'PM', 'TM', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role)) && (
+                <button 
+                  onClick={() => setIsMobileView(true)}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                  title="Open Mobile App"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              )}
 
               {/* User Switcher */}
               <div className="w-64">
