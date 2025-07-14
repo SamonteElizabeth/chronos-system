@@ -51,7 +51,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ currentUser }) 
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
-        <p className="text-gray-600">Insights into productivity, resource utilization, and project performance</p>
       </div>
 
       {/* Key Metrics */}
