@@ -240,7 +240,11 @@ const TaskLogs: React.FC<TaskLogsProps> = ({ currentUser }) => {
           <div className="text-sm text-gray-600">Ongoing</div>
         </div>
         
-        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">    
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="text-2xl font-bold text-purple-600">{stats.avgHoursPerTask}h</div>
+          <div className="text-sm text-gray-600">Avg/Task</div>
+        </div>
+        
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
           <div className="text-2xl font-bold text-indigo-600">{stats.activeEngineers}</div>
           <div className="text-sm text-gray-600">Active Engineers</div>
