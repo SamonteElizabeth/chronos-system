@@ -362,7 +362,19 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
               {/* Next Steps */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-    
+                  Next Steps / Recommendations (Optional)
+                </label>
+                <textarea
+                  value={formData.nextSteps}
+                  onChange={(e) => handleInputChange('nextSteps', e.target.value)}
+                  disabled={isSubmitting}
+                  rows={3}
+                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  placeholder="Suggestions for future work, improvements, or follow-up tasks..."
+                />
+              </div>
 
               {/* Completion Date */}
               <div>
