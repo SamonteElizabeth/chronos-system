@@ -21,7 +21,6 @@ interface TaskCompletionModalProps {
 
 interface TaskCompletionData {
   taskId: string;
-  accomplishments: string;
   remarks: string;
   attachments: File[];
   completionDate: string;
@@ -41,13 +40,9 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<TaskCompletionData>({
     taskId: task?.id || '',
-    accomplishments: '',
     remarks: '',
     attachments: [],
     completionDate: new Date().toISOString().split('T')[0],
-    actualHoursSpent: task?.actualHours || 0,
-    challenges: '',
-    nextSteps: ''
   });
 
   const [attachmentPreviews, setAttachmentPreviews] = useState<AttachmentPreview[]>([]);
@@ -127,16 +122,8 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Partial<TaskCompletionData> = {};
 
-    if (!formData.accomplishments.trim()) {
-      newErrors.accomplishments = 'Please describe what you accomplished';
-    }
-
     if (!formData.remarks.trim()) {
-      newErrors.remarks = 'Please provide completion remarks';
-    }
-
-    if (formData.actualHoursSpent <= 0) {
-      newErrors.actualHoursSpent = 'Actual hours must be greater than 0';
+      newErrors.remarks = 'Completion remarks are required';
     }
 
     setErrors(newErrors);
@@ -164,7 +151,6 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
       // Reset form
       setFormData({
         taskId: task?.id || '',
-        accomplishments: '',
         remarks: '',
         attachments: [],
         completionDate: new Date().toISOString().split('T')[0],
@@ -183,7 +169,7 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
   const handleClose = () => {
     if (isSubmitting) return;
 
-    const hasUnsavedChanges = formData.accomplishments || formData.remarks || formData.attachments.length > 0;
+    const hasUnsavedChanges = formData.remarks || formData.attachments.length > 0;
     
     if (hasUnsavedChanges) {
       const confirmClose = confirm('You have unsaved changes. Are you sure you want to close without saving?');
@@ -230,7 +216,7 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Complete Task</h2>
-              <p className="text-sm text-gray-600">Add accomplishments and remarks for task completion</p>
+              <p className="text-sm text-gray-600">Add completion remarks and attachments</p>
             </div>
           </div>
           <button
@@ -244,160 +230,46 @@ const TaskCompletionModal: React.FC<TaskCompletionModalProps> = ({
 
         {/* Task Info */}
         <div className="p-6 border-b border-gray-200 bg-gray-50">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{task.title}</h3>
-              <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <span>Priority: <span className={`font-medium ${
-                  task.priority === 'CRITICAL' ? 'text-red-600' :
-                  task.priority === 'HIGH' ? 'text-orange-600' :
-                  task.priority === 'MEDIUM' ? 'text-yellow-600' : 'text-green-600'
-                }`}>{task.priority}</span></span>
-                <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-600 mb-1">Estimated vs Actual Hours</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {task.estimatedHours}h → {formData.actualHoursSpent}h
-              </div>
-              <div className={`text-sm font-medium ${
-                formData.actualHoursSpent > task.estimatedHours ? 'text-red-600' : 'text-green-600'
-              }`}>
-                {formData.actualHoursSpent > task.estimatedHours ? '+' : ''}
-                {(formData.actualHoursSpent - task.estimatedHours).toFixed(1)}h difference
-              </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{task.title}</h3>
+            <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+            <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <span>Priority: <span className={`font-medium ${
+                task.priority === 'CRITICAL' ? 'text-red-600' :
+                task.priority === 'HIGH' ? 'text-orange-600' :
+                task.priority === 'MEDIUM' ? 'text-yellow-600' : 'text-green-600'
+              }`}>{task.priority}</span></span>
+              <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
         {/* Form */}
         <div className="p-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-6">
-              {/* Accomplishments */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What did you accomplish? *
-                </label>
-                <textarea
-                  value={formData.accomplishments}
-                  onChange={(e) => handleInputChange('accomplishments', e.target.value)}
-                  disabled={isSubmitting}
-                  rows={4}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    errors.accomplishments ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  placeholder="Describe what you completed, features implemented, bugs fixed, etc..."
-                />
-                {errors.accomplishments && (
-                  <p className="mt-1 text-sm text-red-600">{errors.accomplishments}</p>
-                )}
-              </div>
-
-              {/* Completion Remarks */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Completion Remarks *
-                </label>
-                <textarea
-                  value={formData.remarks}
-                  onChange={(e) => handleInputChange('remarks', e.target.value)}
-                  disabled={isSubmitting}
-                  rows={3}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    errors.remarks ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  placeholder="Overall thoughts, quality notes, or important observations..."
-                />
-                {errors.remarks && (
-                  <p className="mt-1 text-sm text-red-600">{errors.remarks}</p>
-                )}
-              </div>
-
-              {/* Actual Hours Spent */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Actual Hours Spent *
-                </label>
-                <input
-                  type="number"
-                  min="0.1"
-                  step="0.1"
-                  value={formData.actualHoursSpent || ''}
-                  onChange={(e) => handleInputChange('actualHoursSpent', parseFloat(e.target.value) || 0)}
-                  disabled={isSubmitting}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    errors.actualHoursSpent ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  placeholder="Enter total hours worked"
-                />
-                {errors.actualHoursSpent && (
-                  <p className="mt-1 text-sm text-red-600">{errors.actualHoursSpent}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-6">
-              {/* Challenges Faced */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Challenges Faced (Optional)
-                </label>
-                <textarea
-                  value={formData.challenges}
-                  onChange={(e) => handleInputChange('challenges', e.target.value)}
-                  disabled={isSubmitting}
-                  rows={3}
-                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  placeholder="Any difficulties, blockers, or issues encountered..."
-                />
-              </div>
-
-              {/* Next Steps */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Next Steps / Recommendations (Optional)
-                </label>
-                <textarea
-                  value={formData.nextSteps}
-                  onChange={(e) => handleInputChange('nextSteps', e.target.value)}
-                  disabled={isSubmitting}
-                  rows={3}
-                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  placeholder="Suggestions for future work, improvements, or follow-up tasks..."
-                />
-              </div>
-
-              {/* Completion Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Completion Date *
-                </label>
-                <input
-                  type="date"
-                  value={formData.completionDate}
-                  onChange={(e) => handleInputChange('completionDate', e.target.value)}
-                  disabled={isSubmitting}
-                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                />
-              </div>
-            </div>
+          {/* Completion Remarks */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Completion Remarks *
+            </label>
+            <textarea
+              value={formData.remarks}
+              onChange={(e) => handleInputChange('remarks', e.target.value)}
+              disabled={isSubmitting}
+              rows={4}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.remarks ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              placeholder="Describe what you completed, any issues encountered, or important notes..."
+            />
+            {errors.remarks && (
+              <p className="mt-1 text-sm text-red-600">{errors.remarks}</p>
+            )}
           </div>
 
           {/* File Attachments */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Attachments (Optional)
+              Attachments
             </label>
             <div className="space-y-4">
               {/* Upload Area */}

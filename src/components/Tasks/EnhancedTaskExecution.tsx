@@ -24,7 +24,6 @@ interface EnhancedTaskExecutionProps {
 
 interface TaskCompletionData {
   taskId: string;
-  accomplishments: string;
   remarks: string;
   attachments: File[];
   completionDate: string;
@@ -113,7 +112,6 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
       accountManager: 'John Smith',
       sowMandays: 120,
       solution: 'E-commerce Platform',
-      pmoTm: 'Lisa Rodriguez (PM)'
     },
     {
       id: '2',
@@ -132,7 +130,6 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
       accountManager: 'Emily Davis',
       sowMandays: 80,
       solution: 'Mobile App Development',
-      pmoTm: 'David Kim (TM)'
     }
   ];
 
@@ -224,7 +221,7 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
           ? { 
               ...task, 
               status: 'COMPLETED' as const, 
-              actualHours: data.actualHoursSpent 
+              actualHours: task.actualHours + 1 // Simple increment for demo
             }
           : task
       )
@@ -237,7 +234,7 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
       attachmentNames: data.attachments.map(f => f.name)
     });
 
-    alert(`✅ Task "${selectedTaskForCompletion?.title}" has been completed successfully!\n\n📋 Accomplishments and attachments have been saved.`);
+    alert(`✅ Task "${selectedTaskForCompletion?.title}" has been completed successfully!\n\n📋 Completion remarks and attachments have been saved.`);
   };
 
   if (selectedProject) {

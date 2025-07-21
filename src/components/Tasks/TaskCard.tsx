@@ -23,13 +23,9 @@ interface TaskCardProps {
 
 interface TaskCompletionData {
   taskId: string;
-  accomplishments: string;
   remarks: string;
   attachments: File[];
   completionDate: string;
-  actualHoursSpent: number;
-  challenges: string;
-  nextSteps: string;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ 
@@ -81,7 +77,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       onTaskComplete(task.id);
     }
     
-    alert(`✅ Task "${task.title}" has been completed successfully!\n\n📋 Accomplishments and attachments have been saved.`);
+    alert(`✅ Task "${task.title}" has been completed successfully!\n\n📋 Completion remarks and attachments have been saved.`);
   };
 
   const progress = task.estimatedHours > 0 ? (task.actualHours / task.estimatedHours) * 100 : 0;

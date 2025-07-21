@@ -28,74 +28,12 @@ export const useTimer = () => {
   }, [activeTimer]);
 
   const startTimer = (taskId: string, description: string = '') => {
-    // Request geolocation permission and get current location
-    if (navigator.geolocation) {
-      // Show geolocation alert
-      const userConsent = confirm(
-        "This app would like to access your location to track where you're working. This helps with accurate time logging and project management. Do you allow location access?"
-      );
-      
-      if (userConsent) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setActiveTimer({
-              taskId,
-              startTime: new Date().toISOString(),
-              description,
-              location: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                address: 'Current Location', // In a real app, you'd reverse geocode this
-              },
-            });
-            alert('Timer started with location tracking enabled!');
-          }, 
-          (error) => {
-            // Handle geolocation error
-            console.warn('Geolocation error:', error);
-            const fallbackConsent = confirm(
-              "Location access was denied or unavailable. Would you like to start the timer without location tracking?"
-            );
-            
-            if (fallbackConsent) {
-              setActiveTimer({
-                taskId,
-                startTime: new Date().toISOString(),
-                description,
-              });
-              alert('Timer started without location tracking.');
-            }
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000 // 5 minutes
-          }
-        );
-      } else {
-        // User denied location access
-        const fallbackConsent = confirm(
-          "Location access was denied. Would you like to start the timer without location tracking?"
-        );
-        
-        if (fallbackConsent) {
-          setActiveTimer({
-            taskId,
-            startTime: new Date().toISOString(),
-            description,
-          });
-          alert('Timer started without location tracking.');
-        }
-      }
-    } else {
-      // Geolocation not supported
-      alert('Geolocation is not supported by this browser. Starting timer without location tracking.');
-      setActiveTimer({
-        taskId,
-        startTime: new Date().toISOString(),
-        description,
-      });
-    }
+    // Start timer without geolocation
+    setActiveTimer({
+      taskId,
+      startTime: new Date().toISOString(),
+      description,
+    });
   };
 
   const stopTimer = () => {
@@ -106,10 +44,9 @@ export const useTimer = () => {
         taskId: activeTimer.taskId,
         hours: Math.round(hours * 100) / 100,
         description: activeTimer.description,
-        location: activeTimer.location,
       });
       
-      alert(`Timer stopped! You worked for ${formatTime(elapsedTime)}${activeTimer.location ? ' with location tracking' : ''}.`);
+      alert(`Timer stopped! You worked for ${formatTime(elapsedTime)}.`);
       setActiveTimer(null);
       return hours;
     }

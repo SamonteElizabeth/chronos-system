@@ -32,7 +32,6 @@ interface EngineerAppProps {
 
 interface TaskCompletionData {
   taskId: string;
-  accomplishments: string;
   remarks: string;
   attachments: File[];
   completionDate: string;
@@ -138,7 +137,7 @@ const EngineerApp: React.FC<EngineerAppProps> = ({ currentUser, onLogout }) => {
 
   const handleTaskCompletionSubmit = (data: TaskCompletionData) => {
     console.log('Task completion data:', data);
-    alert(`✅ Task "${selectedTask?.title}" completed successfully!`);
+    alert(`✅ Task "${selectedTask?.title}" completed successfully!\n\n📋 Completion remarks and attachments have been saved.`);
     setIsCompletionModalOpen(false);
     setSelectedTask(null);
   };
