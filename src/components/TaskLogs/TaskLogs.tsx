@@ -219,9 +219,9 @@ const TaskLogs: React.FC<TaskLogsProps> = ({ currentUser }) => {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-2xl font-bold text-blue-600">{stats.totalHours}h</div>
-              <div className="text-sm text-gray-600">Total Hours</div>
+              <div className="text-sm text-gray-600">All</div>
             </div>
-            <Clock className="w-8 h-8 text-blue-500" />
+            <TrendingUp className="w-8 h-8 text-blue-500" />
           </div>
         </div>
         
