@@ -539,7 +539,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ currentUser }) => {
             <p className="text-2xl font-bold text-gray-900">
               {filteredProjects.filter(p => p.status === 'ACTIVE').length}
             </p>
-            <p className="text-sm text-gray-600">Active Projects</p>
+            <p className="text-sm text-gray-600">All</p>
           </div>
         </div>
 
@@ -567,7 +567,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ currentUser }) => {
             <p className="text-2xl font-bold text-gray-900">
               {filteredProjects.filter(p => p.status === 'PLANNING').length}
             </p>
-            <p className="text-sm text-gray-600">Planning</p>
+            <p className="text-sm text-gray-600">Ongoing</p>
           </div>
         </div>
 
@@ -581,7 +581,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ currentUser }) => {
             <p className="text-2xl font-bold text-gray-900">
               {filteredProjects.reduce((sum, p) => sum + p.sowMandays, 0)}
             </p>
-            <p className="text-sm text-gray-600">Total Mandays</p>
+            <p className="text-sm text-gray-600">Pending</p>
           </div>
         </div>
       </div>
