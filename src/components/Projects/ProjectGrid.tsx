@@ -601,7 +601,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ currentUser }) => {
           </div>
 
           <div className="flex space-x-2">
-            {['ALL', 'ACTIVE', 'Finished', 'ON_HOLD', 'COMPLETED'].map((status) => (
+            {['ALL', 'ACTIVE', 'FINISHED', 'ON_HOLD', 'OVERDUE'].map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
