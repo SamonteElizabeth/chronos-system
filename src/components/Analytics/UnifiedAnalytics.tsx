@@ -258,7 +258,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">8</p>
-                <p className="text-sm text-gray-600">Team Members</p>
+                <p className="text-sm text-gray-600">Active Engineers</p>
               </div>
             </div>
 
