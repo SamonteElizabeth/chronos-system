@@ -407,7 +407,7 @@ const PMAssignments: React.FC<PMAssignmentsProps> = ({ currentUser }) => {
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
           <div className="text-2xl font-bold text-red-600">{stats.overloadedPMs}</div>
-          <div className="text-sm text-gray-600">Overloaded PMs</div>
+          <div className="text-sm text-gray-600">Assigned</div>
         </div>
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
