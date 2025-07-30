@@ -396,16 +396,6 @@ const PMAssignments: React.FC<PMAssignmentsProps> = ({ currentUser }) => {
         </div>
         
         <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl font-bold text-blue-600">{stats.completedAssignments}</div>
-          <div className="text-sm text-gray-600">Completed</div>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl font-bold text-yellow-600">{stats.pendingAssignments}</div>
-          <div className="text-sm text-gray-600">Pending</div>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
           <div className="text-2xl font-bold text-red-600">{stats.overloadedPMs}</div>
           <div className="text-sm text-gray-600">Assigned</div>
         </div>
