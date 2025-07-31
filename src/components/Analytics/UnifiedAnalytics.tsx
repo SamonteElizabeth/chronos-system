@@ -367,7 +367,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
   <div className="flex items-center justify-between mb-6">
     <h3 className="text-lg font-semibold text-gray-900">Project Cost Analysis</h3>
-    <DollarSign className="w-5 h-5 text-gray-400" />
+    <P className="w-5 h-5 text-gray-400" />
   </div>
 
   <ResponsiveContainer width="100%" height={300}>
