@@ -27,16 +27,16 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
   // Mock data for different roles
   const mockData = {
     engineerAllocation: [
-      { name: 'Alex Thompson', projects: 3, utilization: 94, efficiency: 87, hoursLogged: 168, salaryLevel: 4, department: 'ITSD' },
-      { name: 'Emma Wilson', projects: 2, utilization: 89, efficiency: 92, hoursLogged: 155, salaryLevel: 3, department: 'DIG' },
-      { name: 'James Miller', projects: 4, utilization: 76, efficiency: 85, hoursLogged: 148, salaryLevel: 2, department: 'BSD' },
-      { name: 'Sophia Davis', projects: 2, utilization: 98, efficiency: 90, hoursLogged: 162, salaryLevel: 5, department: 'TSD' },
-      { name: 'William Garcia', projects: 3, utilization: 82, efficiency: 88, hoursLogged: 140, salaryLevel: 3, department: 'DIG' },
-      { name: 'Olivia Martinez', projects: 2, utilization: 91, efficiency: 94, hoursLogged: 158, salaryLevel: 4, department: 'BSD' },
-      { name: 'Benjamin Lee', projects: 3, utilization: 87, efficiency: 89, hoursLogged: 152, salaryLevel: 3, department: 'ITSD' },
-      { name: 'Charlotte Brown', projects: 2, utilization: 93, efficiency: 91, hoursLogged: 165, salaryLevel: 4, department: 'TSD' },
-      { name: 'Daniel Wilson', projects: 4, utilization: 79, efficiency: 86, hoursLogged: 145, salaryLevel: 2, department: 'DIG' },
-      { name: 'Isabella Taylor', projects: 3, utilization: 96, efficiency: 93, hoursLogged: 170, salaryLevel: 5, department: 'BSD' }
+      { name: 'Alex Thompson', projects: 3, utilization: 87, hoursLogged: 168, salaryLevel: 4, department: 'ITSD' },
+      { name: 'Emma Wilson', projects: 2, utilization:  92, hoursLogged: 155, salaryLevel: 3, department: 'DIG' },
+      { name: 'James Miller', projects: 4, utilization: 85, hoursLogged: 148, salaryLevel: 2, department: 'BSD' },
+      { name: 'Sophia Davis', projects: 2, utilization: 90, hoursLogged: 162, salaryLevel: 5, department: 'TSD' },
+      { name: 'William Garcia', projects: 3, utilization: 88, hoursLogged: 140, salaryLevel: 3, department: 'DIG' },
+      { name: 'Olivia Martinez', projects: 2, utilization: 94, hoursLogged: 158, salaryLevel: 4, department: 'BSD' },
+      { name: 'Benjamin Lee', projects: 3, utilization: 89, hoursLogged: 152, salaryLevel: 3, department: 'ITSD' },
+      { name: 'Charlotte Brown', projects: 2, utilization: 91, hoursLogged: 165, salaryLevel: 4, department: 'TSD' },
+      { name: 'Daniel Wilson', projects: 4, utilization: 86, hoursLogged: 145, salaryLevel: 2, department: 'DIG' },
+      { name: 'Isabella Taylor', projects: 3, utilization: 93, hoursLogged: 170, salaryLevel: 5, department: 'BSD' }
     ],
     projectDelivery: [
       { pm: 'Lisa Rodriguez', projects: 5, onTime: 4, delayed: 1, efficiency: 92 },
