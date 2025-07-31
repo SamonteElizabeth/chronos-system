@@ -363,37 +363,30 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
           </div>
         </div>
 
-        {/* Task Completion Velocity */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Task Completion Velocity</h3>
-            <Zap className="w-5 h-5 text-gray-400" />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{mockData.taskCompletion.thisWeek}</div>
-              <div className="text-sm text-gray-600">This Week</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{mockData.taskCompletion.lastWeek}</div>
-              <div className="text-sm text-gray-600">Last Week</div>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Velocity Increase</span>
-              <span className="text-lg font-semibold text-green-600">+{mockData.taskCompletion.velocity}%</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Avg. Completion Time</span>
-              <span className="text-lg font-semibold text-gray-900">{mockData.taskCompletion.avgCompletionTime} days</span>
-            </div>
-          </div>
-        </div>
-      </div>
+       {/* Project Cost Analysis */}
+<div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+  <div className="flex items-center justify-between mb-6">
+    <h3 className="text-lg font-semibold text-gray-900">Project Cost Analysis</h3>
+    <DollarSign className="w-5 h-5 text-gray-400" />
+  </div>
 
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={mockData.projectCost}>
+      <XAxis dataKey="project" stroke="#888888" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar dataKey="estimatedCost" fill="#60A5FA" name="Estimated Cost (Mandays)" />
+      <Bar dataKey="actualCost" fill="#34D399" name="Actual Cost (Time Spent)" />
+    </BarChart>
+  </ResponsiveContainer>
+
+  <div className="mt-6 space-y-2 text-sm text-gray-600">
+    <p><span className="font-semibold">Estimated Cost:</span> Based on assigned mandays × daily rate.</p>
+    <p><span className="font-semibold">Actual Cost:</span> Based on actual logged hours × daily rate.</p>
+  </div>
+</div>
+        
       {/* PM/TM Performance (for TASS and PMO) */}
       {(currentUser.role === 'TASS' || currentUser.role === 'PMO') && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
