@@ -31,10 +31,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ currentUser }) 
       { category: 'Meetings', hours: 27, percentage: 10 },
     ],
     teamPerformance: [
-      { name: 'Alex Thompson', efficiency: 94, hoursLogged: 160, tasksCompleted: 12 },
-      { name: 'Sarah Kim', efficiency: 89, hoursLogged: 155, tasksCompleted: 10 },
-      { name: 'Mike Rodriguez', efficiency: 87, hoursLogged: 148, tasksCompleted: 11 },
-      { name: 'Lisa Chen', efficiency: 92, hoursLogged: 162, tasksCompleted: 14 },
+      { name: 'Alex Thompson', 94, hoursLogged: 160, tasksCompleted: 12 },
+      { name: 'Sarah Kim',  hoursLogged: 155, tasksCompleted: 10 },
+      { name: 'Mike Rodriguez', hoursLogged: 148, tasksCompleted: 11 },
+      { name: 'Lisa Chen', 92, hoursLogged: 162, tasksCompleted: 14 },
     ]
   };
 
