@@ -363,7 +363,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
           </div>
         </div>
 
-       {/* Project Cost Analysis */}
+      {/* Project Cost Analysis */}
 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
   <div className="flex items-center justify-between mb-6">
     <h3 className="text-lg font-semibold text-gray-900">Project Cost Analysis</h3>
@@ -386,7 +386,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
     <p><span className="font-semibold">Actual Cost:</span> Based on actual logged hours × daily rate.</p>
   </div>
 </div>
-        
+
       {/* PM/TM Performance (for TASS and PMO) */}
       {(currentUser.role === 'TASS' || currentUser.role === 'PMO') && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
