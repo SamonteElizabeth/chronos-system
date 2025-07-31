@@ -354,6 +354,9 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                         className={`h-2 rounded-full ${getEfficiencyColor(engineer.efficiency)}`}
                         style={{ width: `${engineer.efficiency}%` }}
                       ></div>
+                    </div>
+                    <span className="text-xs text-gray-600">{engineer.efficiency}% efficiency</span> 
+                  </div>
                 </div>
               </div>
             ))}
