@@ -28,7 +28,6 @@ export const useTimer = () => {
   }, [activeTimer]);
 
   const startTimer = (taskId: string, description: string = '') => {
-    // Start timer without geolocation
     setActiveTimer({
       taskId,
       startTime: new Date().toISOString(),

@@ -529,10 +529,10 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ currentUser }) => {
           <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
           <p className="text-gray-600">
             {canCreateProject 
-              ? 'Create and manage all system projects'
+              ? ''
               : currentUser.role === 'PMO'
-                ? 'Assign projects to Project Managers and monitor progress'
-                : 'View and track your assigned projects'
+                ? ''
+                : ''
             }
           </p>
         </div>

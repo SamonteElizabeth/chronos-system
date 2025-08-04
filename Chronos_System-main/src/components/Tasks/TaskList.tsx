@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Filter, Plus, SortAsc, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Task, User, TaskFormData, RequestFormData, Project } from '../../types';
 import TaskCard from './TaskCard';
+import TaskListRow from './TaskListRow'; // <-- You'll create this for list view
 import TaskForm from '../Forms/TaskForm';
 import RequestForm from '../Forms/RequestForm';
 
@@ -18,8 +19,13 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
   const [projectFilter, setProjectFilter] = useState('ALL');
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [isRequestFormOpen, setIsRequestFormOpen] = useState(false);
+  
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [taskList, setTaskList] = useState<Task[]>(tasks);
+  const [taskList, setTaskList] = useState<Task[]>(() => {
+    // Load saved tasks from localStorage
+    const savedTasks = JSON.parse(localStorage.getItem('chronos_tasks') || '[]');
+    return savedTasks.length > 0 ? savedTasks : tasks;
+  });
 
   // Mock projects for PM/TM
   const mockProjects: Project[] = [
@@ -101,7 +107,7 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
       title: data.taskName,
       description: data.description || data.subTask,
       assignedTo: data.assignedEngineers[0] || currentUser.id,
-      status: 'PENDING',
+      status: currentUser.role === 'PM' ? 'PENDING_TM_APPROVAL' : 'ASSIGNED',
       priority: data.priority,
       estimatedHours: data.estimatedHours,
       actualHours: 0,
@@ -110,11 +116,25 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
       dependencies: [],
       taskName: data.taskName,
       subTask: data.subTask,
-      assignedEngineers: data.assignedEngineers
+      assignedEngineers: data.assignedEngineers,
+      createdBy: currentUser.id,
+      createdByRole: currentUser.role,
+      assignedBy: currentUser.role === 'TM' ? currentUser.id : undefined,
+      assignedAt: currentUser.role === 'TM' ? new Date().toISOString() : undefined
     };
+    
+    // Save to localStorage for persistence
+    const savedTasks = JSON.parse(localStorage.getItem('chronos_tasks') || '[]');
+    savedTasks.push(newTask);
+    localStorage.setItem('chronos_tasks', JSON.stringify(savedTasks));
 
     setTaskList(prev => [newTask, ...prev]);
-    alert(`Task "${data.taskName}" created successfully!`);
+    
+    if (currentUser.role === 'PM') {
+      alert(`Task "${data.taskName}" created and sent to TM for approval!`);
+    } else {
+      alert(`Task "${data.taskName}" created and assigned to engineers!`);
+    }
   };
 
   const handleRequestSubmit = (data: RequestFormData) => {
@@ -124,15 +144,56 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
   };
 
   const handleTaskComplete = (taskId: string) => {
-    setTaskList(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, status: 'COMPLETED' as const, actualHours: task.actualHours || task.estimatedHours }
-          : task
-      )
+    const updatedTasks = taskList.map(task => 
+      task.id === taskId 
+        ? { ...task, status: 'COMPLETED' as const, actualHours: task.actualHours || task.estimatedHours }
+        : task
     );
+    
+    // Save updated tasks to localStorage
+    localStorage.setItem('chronos_tasks', JSON.stringify(updatedTasks));
+    setTaskList(updatedTasks);
     alert('Task marked as completed!');
   };
+
+  const handleTaskApprove = (taskId: string) => {
+    const updatedTasks = taskList.map(task => 
+      task.id === taskId 
+        ? { 
+            ...task, 
+            status: 'PENDING_ENGINEER_ASSIGNMENT' as const,
+            approvedBy: currentUser.id,
+            approvedAt: new Date().toISOString()
+          }
+        : task
+    );
+    
+    // Save updated tasks to localStorage
+    localStorage.setItem('chronos_tasks', JSON.stringify(updatedTasks));
+    setTaskList(updatedTasks);
+    alert('Task approved! Now assign engineers to proceed.');
+  };
+
+  const handleEngineerAssignment = (taskId: string, engineerIds: string[]) => {
+    const updatedTasks = taskList.map(task => 
+      task.id === taskId 
+        ? { 
+            ...task, 
+            status: 'ASSIGNED' as const,
+            assignedEngineers: engineerIds,
+            assignedBy: currentUser.id,
+            assignedAt: new Date().toISOString()
+          }
+        : task
+    );
+    
+    // Save updated tasks to localStorage
+    localStorage.setItem('chronos_tasks', JSON.stringify(updatedTasks));
+    setTaskList(updatedTasks);
+    alert('Engineers assigned successfully! Task is now ready for execution.');
+  };
+
+
 
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project);
@@ -160,7 +221,9 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
       
     return {
       ALL: relevantTasks.length,
-      PENDING: relevantTasks.filter(t => t.status === 'PENDING').length,
+      PENDING_TM_APPROVAL: relevantTasks.filter(t => t.status === 'PENDING_TM_APPROVAL').length,
+      PENDING_ENGINEER_ASSIGNMENT: relevantTasks.filter(t => t.status === 'PENDING_ENGINEER_ASSIGNMENT').length,
+      ASSIGNED: relevantTasks.filter(t => t.status === 'ASSIGNED').length,
       ONGOING: relevantTasks.filter(t => t.status === 'ONGOING').length,
       COMPLETED: relevantTasks.filter(t => t.status === 'COMPLETED').length,
     };
@@ -285,7 +348,10 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
                 key={task.id} 
                 task={task} 
                 isEngineerView={isEngineerView}
+                currentUserRole={currentUser.role}
                 onTaskComplete={handleTaskComplete}
+                onTaskApprove={handleTaskApprove}
+                onEngineerAssignment={handleEngineerAssignment}
               />
             ))}
           </div>
@@ -337,8 +403,8 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
             {isEngineerView 
               ? 'Track your assigned tasks and log your time'
               : canCreateTasks
-                ? 'Select a project to manage its tasks'
-                : 'View and manage tasks across all projects'
+                ? ''
+                : ''
             }
           </p>
         </div>
@@ -509,7 +575,10 @@ const TaskList: React.FC<TaskListProps> = ({ currentUser, tasks, isEngineerView 
                   key={task.id} 
                   task={task} 
                   isEngineerView={isEngineerView}
+                  currentUserRole={currentUser.role}
                   onTaskComplete={handleTaskComplete}
+                  onTaskApprove={handleTaskApprove}
+                  onEngineerAssignment={handleEngineerAssignment}
                 />
               ))}
             </div>

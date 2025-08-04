@@ -17,8 +17,11 @@ import TaskCompletionModal from './TaskCompletionModal';
 interface TaskCardProps {
   task: Task;
   isEngineerView?: boolean;
+  currentUserRole?: string;
   onRequestClick?: (taskId: string, type: 'CORRECTION' | 'OVERTIME' | 'HOLIDAY' | 'EXTENSION') => void;
   onTaskComplete?: (taskId: string) => void;
+  onTaskApprove?: (taskId: string) => void;
+  onEngineerAssignment?: (taskId: string, engineerIds: string[]) => void;
 }
 
 interface TaskCompletionData {
@@ -31,8 +34,11 @@ interface TaskCompletionData {
 const TaskCard: React.FC<TaskCardProps> = ({ 
   task, 
   isEngineerView = false, 
+  currentUserRole,
   onRequestClick,
-  onTaskComplete 
+  onTaskComplete,
+  onTaskApprove,
+  onEngineerAssignment
 }) => {
   const { activeTimer, elapsedTime, startTimer, stopTimer, formatTime, isActive } = useTimer();
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
@@ -52,6 +58,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
     switch (status) {
       case 'COMPLETED': return 'text-green-600 bg-green-50';
       case 'ONGOING': return 'text-blue-600 bg-blue-50';
+      case 'ASSIGNED': return 'text-purple-600 bg-purple-50';
+      case 'PENDING_ENGINEER_ASSIGNMENT': return 'text-orange-600 bg-orange-50';
+      case 'PENDING_TM_APPROVAL': return 'text-yellow-600 bg-yellow-50';
       case 'PENDING': return 'text-gray-600 bg-gray-50';
       default: return 'text-gray-600 bg-gray-50';
     }
@@ -161,40 +170,112 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
         </div>
 
-        {/* Actions */}
+        {/* Workflow Actions */}
         {task.status !== 'COMPLETED' && (
           <div className="space-y-2 mb-3">
-            {/* Timer and Complete buttons */}
-            <div className="flex space-x-2">
+            {/* TM Approval Action */}
+            {currentUserRole === 'TM' && task.status === 'PENDING_TM_APPROVAL' && (
               <button
-                onClick={handleTimerToggle}
-                className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg font-medium transition-colors ${
-                  isCurrentTaskActive
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                {isCurrentTaskActive ? (
-                  <>
-                    <Pause className="w-4 h-4" />
-                    <span>Stop Timer</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4" />
-                    <span>Start Timer</span>
-                  </>
-                )}
-              </button>
-              
-              <button
-                onClick={handleMarkCompleteClick}
-                className="flex items-center justify-center space-x-2 py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                onClick={() => onTaskApprove?.(task.id)}
+                className="w-full flex items-center justify-center space-x-2 py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
               >
                 <CheckCircle className="w-4 h-4" />
-                <span>Finished</span>
+                <span>Approve Task</span>
               </button>
-            </div>
+            )}
+
+            {/* TM Engineer Assignment Action */}
+            {currentUserRole === 'TM' && task.status === 'PENDING_ENGINEER_ASSIGNMENT' && (
+              <div className="space-y-2">
+                <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                  <strong>Next Step:</strong> Assign engineers to this task
+                </div>
+                <button
+                  onClick={() => {
+                    // For demo, assign some engineers
+                    const engineerIds = ['5', '6', '7']; // Sample engineer IDs
+                    onEngineerAssignment?.(task.id, engineerIds);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Assign Engineers</span>
+                </button>
+              </div>
+            )}
+
+            {/* Engineer Execution Actions */}
+            {task.status === 'ASSIGNED' && isEngineerView && (
+              <div className="space-y-2">
+                <div className="text-xs text-gray-600 bg-green-50 p-2 rounded">
+                  <strong>Ready to Execute:</strong> You can now start working on this task
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleTimerToggle}
+                    className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg font-medium transition-colors ${
+                      isCurrentTaskActive
+                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
+                  >
+                    {isCurrentTaskActive ? (
+                      <>
+                        <Pause className="w-4 h-4" />
+                        <span>Stop Timer</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" />
+                        <span>Start Timer</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={handleMarkCompleteClick}
+                    className="flex items-center justify-center space-x-2 py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Finished</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Legacy Actions for other statuses */}
+            {task.status === 'ONGOING' && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleTimerToggle}
+                  className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    isCurrentTaskActive
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {isCurrentTaskActive ? (
+                    <>
+                      <Pause className="w-4 h-4" />
+                      <span>Stop Timer</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4" />
+                      <span>Start Timer</span>
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={handleMarkCompleteClick}
+                  className="flex items-center justify-center space-x-2 py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Finished</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -225,6 +306,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         )}
       </div>
+      
 
       {/* Task Completion Modal */}
       <TaskCompletionModal

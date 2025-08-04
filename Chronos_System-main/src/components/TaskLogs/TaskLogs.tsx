@@ -257,9 +257,6 @@ const TaskLogs: React.FC<TaskLogsProps> = ({ currentUser }) => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Task Logs</h1>
-        <p className="text-gray-600">
-          Monitor all engineer task progress and time logging across projects
-        </p>
       </div>
 
       {/* Stats Cards */}

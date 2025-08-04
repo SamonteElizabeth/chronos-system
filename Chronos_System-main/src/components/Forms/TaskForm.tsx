@@ -125,8 +125,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const taskName = isCustomTask ? customTaskName : formData.taskName;
     if (!taskName.trim()) newErrors.taskName = 'Task Name is required';
     
-    // For both PM and TM, sub task is required
-    if ((userRole === 'TM' || userRole === 'PM') && !formData.subTask.trim()) {
+    // Sub task is optional for PM and Engineers, required for TM
+    if (userRole === 'TM' && !formData.subTask.trim()) {
       newErrors.subTask = 'Sub Task is required';
     }
     
@@ -138,7 +138,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
       newErrors.projectId = 'Project selection is required';
     }
     
-    if (formData.assignedEngineers.length === 0) newErrors.assignedEngineers = 'At least one engineer must be assigned';
+    // Engineer assignment validation based on role
+    if (userRole === 'TM' && formData.assignedEngineers.length === 0) {
+      newErrors.assignedEngineers = 'At least one engineer must be assigned';
+    }
+    // PM doesn't need to assign engineers initially
 
     if (formData.startDate && formData.dueDate && new Date(formData.startDate) >= new Date(formData.dueDate)) {
       newErrors.dueDate = 'Due Date must be after Start Date';
@@ -152,10 +156,30 @@ const TaskForm: React.FC<TaskFormProps> = ({
     e.preventDefault();
     if (validateForm()) {
       const finalTaskName = isCustomTask ? customTaskName : formData.taskName;
-      onSubmit({
-        ...formData,
-        taskName: finalTaskName
-      });
+      
+      // For PM, don't require engineer assignment initially
+      if (userRole === 'PM') {
+        const pmFormData = {
+          ...formData,
+          taskName: finalTaskName,
+          assignedEngineers: [] // PM doesn't assign engineers initially
+        };
+        onSubmit(pmFormData);
+      } else if (userRole === 'ENGINEER') {
+        // For Engineers, assign to themselves
+        const engineerFormData = {
+          ...formData,
+          taskName: finalTaskName,
+          assignedEngineers: ['self'] // Engineer assigns to themselves
+        };
+        onSubmit(engineerFormData);
+      } else {
+        // For TM, require engineer assignment
+        onSubmit({
+          ...formData,
+          taskName: finalTaskName
+        });
+      }
       
       // Reset form
       setFormData({
@@ -227,13 +251,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
               </div>
             )}
 
-            {/* Task Name - Both PM and TM get dropdown with predefined tasks */}
+            {/* Task Name - PM, TM, and Engineers get dropdown with predefined tasks */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Task Name *
               </label>
               
-              {(userRole === 'TM' || userRole === 'PM') ? (
+              {(userRole === 'TM' || userRole === 'PM' || userRole === 'ENGINEER') ? (
                 <div className="space-y-2">
                   <select
                     value={isCustomTask ? 'CUSTOM' : formData.taskName}
@@ -279,11 +303,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
               )}
             </div>
 
-            {/* Sub Task - For both PM and TM */}
-            {(userRole === 'TM' || userRole === 'PM') && (
+            {/* Sub Task - For PM, TM, and Engineers */}
+            {(userRole === 'TM' || userRole === 'PM' || userRole === 'ENGINEER') && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sub Task *
+                  Sub Task {userRole === 'TM' ? '*' : '(Optional)'}
                 </label>
                 <input
                   type="text"
@@ -393,74 +417,115 @@ const TaskForm: React.FC<TaskFormProps> = ({
               />
             </div>
 
-            {/* Assigned Engineers */}
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assigned Engineers *
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                {/* Self Assignment Option */}
-                <div
-                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    formData.assignedEngineers.includes('self')
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleEngineerToggle('self')}
-                >
-                  <div className="flex items-center space-x-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.assignedEngineers.includes('self')}
-                      onChange={() => handleEngineerToggle('self')}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-900">Assign to myself</span>
-                  </div>
-                  <div className="text-xs text-blue-600 font-medium">Self Assignment</div>
-                </div>
-
-                {availableEngineers.map((engineer) => (
+            {/* Assigned Engineers - Only for TM */}
+            {userRole === 'TM' && (
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assigned Engineers *
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                  {/* Self Assignment Option */}
                   <div
-                    key={engineer.id}
                     className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                      formData.assignedEngineers.includes(engineer.id)
+                      formData.assignedEngineers.includes('self')
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                    onClick={() => handleEngineerToggle(engineer.id)}
+                    onClick={() => handleEngineerToggle('self')}
                   >
                     <div className="flex items-center space-x-2 mb-2">
                       <input
                         type="checkbox"
-                        checked={formData.assignedEngineers.includes(engineer.id)}
-                        onChange={() => handleEngineerToggle(engineer.id)}
+                        checked={formData.assignedEngineers.includes('self')}
+                        onChange={() => handleEngineerToggle('self')}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       />
-                      <span className="text-sm font-medium text-gray-900">{engineer.name}</span>
+                      <span className="text-sm font-medium text-gray-900">Assign to myself</span>
                     </div>
-                    <div className="flex flex-wrap gap-1">
-                      {engineer.skills.slice(0, 2).map((skill) => (
-                        <span
-                          key={skill}
-                          className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {engineer.skills.length > 2 && (
-                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                          +{engineer.skills.length - 2}
-                        </span>
-                      )}
+                    <div className="text-xs text-blue-600 font-medium">Self Assignment</div>
+                  </div>
+
+                  {availableEngineers.map((engineer) => (
+                    <div
+                      key={engineer.id}
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        formData.assignedEngineers.includes(engineer.id)
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => handleEngineerToggle(engineer.id)}
+                    >
+                      <div className="flex items-center space-x-2 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.assignedEngineers.includes(engineer.id)}
+                          onChange={() => handleEngineerToggle(engineer.id)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-900">{engineer.name}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {engineer.skills.slice(0, 2).map((skill) => (
+                          <span
+                            key={skill}
+                            className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {engineer.skills.length > 2 && (
+                          <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                            +{engineer.skills.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {errors.assignedEngineers && (
+                  <p className="mt-1 text-sm text-red-600">{errors.assignedEngineers}</p>
+                )}
+              </div>
+            )}
+
+            {/* PM Workflow Info */}
+            {userRole === 'PM' && (
+              <div className="lg:col-span-2">
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-blue-600 text-sm font-bold">i</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-800 font-medium">Task Workflow</p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        After creating this task, it will be automatically sent to the TM for review and engineer assignment.
+                        Engineers will be notified once assigned by the TM.
+                      </p>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-              {errors.assignedEngineers && (
-                <p className="mt-1 text-sm text-red-600">{errors.assignedEngineers}</p>
-              )}
-            </div>
+            )}
+
+            {/* Engineer Workflow Info */}
+            {userRole === 'ENGINEER' && (
+              <div className="lg:col-span-2">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-600 text-sm font-bold">i</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-800 font-medium">Self-Assigned Task</p>
+                      <p className="text-xs text-green-700 mt-1">
+                        This task will be created and assigned to you immediately. You can start working on it right away.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Form Actions */}

@@ -825,9 +825,6 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">TRACKPRO MILESTONE</h1>
-          <p className="text-gray-600">
-            Monitor engineer progress with daily Gantt chart and advanced filtering
-          </p>
         </div>
       </div>
 
@@ -976,9 +973,6 @@ const TrackProMilestone: React.FC<TrackProMilestoneProps> = ({ currentUser }) =>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 text-center">TRACKPRO MILESTONE GANTT CHART</h3>
-          <p className="text-sm text-gray-600 text-center mt-1">
-            Engineer progress tracking with task status visualization
-          </p>
         </div>
 
         <div className="overflow-x-auto">

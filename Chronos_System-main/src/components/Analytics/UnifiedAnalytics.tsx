@@ -31,6 +31,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
   const [pmSearch, setPmSearch] = useState('');
   const [pmFilter, setPmFilter] = useState('ALL');
   const [engineerAnalyticsSearch, setEngineerAnalyticsSearch] = useState('');
+  const [projectCosts, setProjectCosts] = useState('ALL');
 
   // Mock data for different roles
   const mockData = {
@@ -40,11 +41,6 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
       { name: 'James Miller', projects: 4, utilization: 76, efficiency: 85, hoursLogged: 148, salaryLevel: 2, department: 'BSD' },
       { name: 'Sophia Davis', projects: 2, utilization: 98, efficiency: 90, hoursLogged: 162, salaryLevel: 5, department: 'TSD' },
       { name: 'William Garcia', projects: 3, utilization: 82, efficiency: 88, hoursLogged: 140, salaryLevel: 3, department: 'DIG' },
-      { name: 'Olivia Martinez', projects: 2, utilization: 91, efficiency: 94, hoursLogged: 158, salaryLevel: 4, department: 'BSD' },
-      { name: 'Benjamin Lee', projects: 3, utilization: 87, efficiency: 89, hoursLogged: 152, salaryLevel: 3, department: 'ITSD' },
-      { name: 'Charlotte Brown', projects: 2, utilization: 93, efficiency: 91, hoursLogged: 165, salaryLevel: 4, department: 'TSD' },
-      { name: 'Daniel Wilson', projects: 4, utilization: 79, efficiency: 86, hoursLogged: 145, salaryLevel: 2, department: 'DIG' },
-      { name: 'Isabella Taylor', projects: 3, utilization: 96, efficiency: 93, hoursLogged: 170, salaryLevel: 5, department: 'BSD' }
     ],
     projectDelivery: [
       { pm: 'Lisa Rodriguez', projects: 5, onTime: 4, delayed: 1, efficiency: 92 },
@@ -152,7 +148,9 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
     eng.name.toLowerCase().includes(engineerAnalyticsSearch.toLowerCase()) ||
     eng.department.toLowerCase().includes(engineerAnalyticsSearch.toLowerCase())
   );
-
+  const filteredProjectCosts = mockData.projectCosts.filter(project => 
+    project.projectName.toLowerCase().includes(projectCosts.toLowerCase())
+  );
   const getUtilizationColor = (utilization: number) => {
     if (utilization > 95) return 'text-red-600 bg-red-50';
     if (utilization > 85) return 'text-green-600 bg-green-50';
@@ -187,7 +185,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Users className="w-6 h-6 text-blue-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">+5%</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">156</p>
@@ -200,7 +198,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <Target className="w-6 h-6 text-green-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">+12%</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">24</p>
@@ -213,11 +211,11 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                   <Activity className="w-6 h-6 text-purple-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">+8%</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">87%</p>
-                <p className="text-sm text-gray-600">System Efficiency</p>
+                <p className="text-2xl font-bold text-gray-900">2</p>
+                <p className="text-sm text-gray-600">Overdue Projects</p>
               </div>
             </div>
 
@@ -226,7 +224,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                   <Award className="w-6 h-6 text-orange-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">+15%</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">5</p>
@@ -301,7 +299,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Target className="w-6 h-6 text-blue-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">+8%</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">32</p>
@@ -314,7 +312,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <Users className="w-6 h-6 text-green-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">0%</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">8</p>
@@ -327,7 +325,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                   <Clock className="w-6 h-6 text-orange-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">+2</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">5</p>
@@ -340,7 +338,7 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                   <Activity className="w-6 h-6 text-purple-600" />
                 </div>
-                <span className="text-sm font-medium text-green-600">+12%</span>
+                <span className="text-sm font-medium text-green-600"></span>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">94%</p>
@@ -358,9 +356,6 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
-          <p className="text-gray-600">
-            Resource-centric insights and performance metrics
-          </p>
         </div>
         
         <div className="flex items-center space-x-3">
@@ -384,20 +379,22 @@ const UnifiedAnalytics: React.FC<UnifiedAnalyticsProps> = ({ currentUser }) => {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Engineer Allocation</h3>
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search engineers or departments..."
-                  value={engineerSearch}
-                  onChange={(e) => setEngineerSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-              </div>
-              <BarChart3 className="w-5 h-5 text-gray-400" />
-            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Allocation</h3>
+            {!isEngineerView && (
+  <div className="flex items-center space-x-3">
+    <div className="relative">
+      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+      <input
+        type="text"
+        placeholder="Search engineers or departments..."
+        value={engineerSearch}
+        onChange={(e) => setEngineerSearch(e.target.value)}
+        className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+      />
+    </div>
+    <BarChart3 className="w-5 h-5 text-gray-400" />
+  </div>
+)}
           </div>
           
           <div className="space-y-4">

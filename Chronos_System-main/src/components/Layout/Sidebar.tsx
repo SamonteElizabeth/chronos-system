@@ -8,7 +8,6 @@ import {
   Settings,
   Users,
   Calendar,
-  MapPin,
   ChevronDown,
   FileText,
   Target,
@@ -45,33 +44,19 @@ const Sidebar: React.FC<SidebarProps> = ({
         return [
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
           { id: 'projects', label: 'Projects', icon: FolderOpen },
+          { id: 'assignments', label: 'PM Assignments', icon: UserCheck },
           { id: 'task-logs', label: 'Task Logs', icon: FileText },
           { id: 'trackpro', label: 'TrackPro Milestone', icon: Target },
-          { id: 'assignments', label: 'PM Assignments', icon: UserCheck }
         ];
       case 'PM_DEPT_HEAD':
         return [
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-          { id: 'projects', label: 'Projects', icon: FolderOpen },
-          { id: 'tasks', label: 'Task Management', icon: CheckSquare },
-          { id: 'task-execution', label: 'Task Execution', icon: Play },
           { id: 'task-logs', label: 'Task Logs', icon: FileText },
-          { id: 'approvals', label: 'PM Approvals', icon: Clock },
-          { id: 'trackpro', label: 'TrackPro Milestone', icon: Target },
-          { id: 'location', label: 'Engineer Locations', icon: MapPin },
-          { id: 'users', label: 'User Management', icon: Users }
+          { id: 'approvals', label: 'Timesheet Approval', icon: Clock }
         ];
       case 'TM_DEPT_HEAD':
         return [
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-          { id: 'projects', label: 'Projects', icon: FolderOpen },
-          { id: 'tasks', label: 'Task Management', icon: CheckSquare },
-          { id: 'task-execution', label: 'Task Execution', icon: Play },
           { id: 'task-logs', label: 'Task Logs', icon: FileText },
-          { id: 'approvals', label: 'TM Approvals', icon: Clock },
-          { id: 'trackpro', label: 'TrackPro Milestone', icon: Target },
-          { id: 'location', label: 'Engineer Locations', icon: MapPin },
-          { id: 'users', label: 'User Management', icon: Users }
+          { id: 'approvals', label: 'Timesheet Approval', icon: Clock }
         ];
       case 'PM':
       case 'TM':
@@ -81,16 +66,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           { id: 'tasks', label: 'Task Management', icon: CheckSquare },
           { id: 'task-execution', label: 'Task Execution', icon: Play },
           { id: 'task-logs', label: 'Task Logs', icon: FileText },
-          { id: 'approvals', label: 'Engineer Approvals', icon: Clock },
-          { id: 'trackpro', label: 'TrackPro Milestone', icon: Target },
-          { id: 'location', label: 'Engineer Locations', icon: MapPin }
+          { id: 'approvals', label: 'Timesheet Approval', icon: Clock },
+          { id: 'timesheet', label: 'Timesheet', icon: ClipboardList },
+          { id: 'trackpro', label: 'TrackPro Milestone', icon: Target }
         ];
       case 'ENGINEER':
         return [
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
           { id: 'task-execution', label: 'Task Execution', icon: Play },
+          { id: 'timesheet', label: 'Timesheet', icon: ClipboardList },
           { id: 'trackpro', label: 'TrackPro Milestone', icon: Target },
-          { id: 'timesheet', label: 'Timesheet', icon: ClipboardList }
         ];
       case 'EEM':
         return [

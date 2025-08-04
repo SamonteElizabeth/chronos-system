@@ -60,7 +60,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ currentUser }) 
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Target className="w-6 h-6 text-blue-600" />
             </div>
-            <span className="text-sm font-medium text-green-600">+12%</span>
+            <span className="text-sm font-medium text-green-600"></span>
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">87%</p>
@@ -73,7 +73,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ currentUser }) 
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <Clock className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-sm font-medium text-green-600">+8%</span>
+            <span className="text-sm font-medium text-green-600"></span>
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">1,247</p>
@@ -86,7 +86,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ currentUser }) 
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <Award className="w-6 h-6 text-purple-600" />
             </div>
-            <span className="text-sm font-medium text-green-600">+15%</span>
+            <span className="text-sm font-medium text-green-600"></span>
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">94%</p>
@@ -99,7 +99,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ currentUser }) 
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-orange-600" />
             </div>
-            <span className="text-sm font-medium text-red-600">-2%</span>
+            <span className="text-sm font-medium text-red-600"></span>
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">92%</p>

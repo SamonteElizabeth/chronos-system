@@ -49,7 +49,7 @@ export interface Task {
   title: string;
   description: string;
   assignedTo: string;
-  status: 'PENDING' | 'ONGOING' | 'COMPLETED';
+  status: 'PENDING_TM_APPROVAL' | 'PENDING_ENGINEER_ASSIGNMENT' | 'ASSIGNED' | 'ONGOING' | 'COMPLETED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   estimatedHours: number;
   actualHours: number;
@@ -62,6 +62,13 @@ export interface Task {
   assignedEngineers: string[];
   // Enhanced sub-tasks
   subTasks: SubTask[];
+  // Workflow fields
+  createdBy: string;
+  createdByRole: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  assignedBy?: string;
+  assignedAt?: string;
 }
 
 export interface TimeEntry {
@@ -71,11 +78,6 @@ export interface TimeEntry {
   date: string;
   hours: number;
   description: string;
-  location?: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
 }
 
 export interface TimeRequest {
@@ -103,11 +105,6 @@ export interface ActiveTimer {
   taskId: string;
   startTime: string;
   description: string;
-  location?: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
 }
 
 export interface MilestoneEntry {

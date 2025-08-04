@@ -230,7 +230,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
   ];
 
   const canApprove = ['PM', 'TM', 'PM_DEPT_HEAD', 'TM_DEPT_HEAD'].includes(currentUser.role);
-  const canSubmitRequest = ['PM', 'TM'].includes(currentUser.role);
+  const canSubmitRequest = ['PM', 'TM' , 'ENGINEER'].includes(currentUser.role);
 
   const getTaskInfo = (taskId: string) => {
     return mockTasks.find(task => task.id === taskId) || { title: 'Unknown Task', projectName: 'Unknown Project' };
@@ -374,7 +374,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ currentUser }) => {
             className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Submit Request</span>
+            <span> Request</span>
           </button>
         )}
       </div>

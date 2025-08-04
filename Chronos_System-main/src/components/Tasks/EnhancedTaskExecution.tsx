@@ -10,7 +10,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Timer,
-  ChevronRight
+  ChevronRight,
+  List,
+  Grid3X3
 } from 'lucide-react';
 import { User, Project, Task, RequestFormData } from '../../types';
 import { useTimer } from '../../hooks/useTimer';
@@ -34,6 +36,7 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [isRequestFormOpen, setIsRequestFormOpen] = useState(false);
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedTaskForRequest, setSelectedTaskForRequest] = useState<string>('');
   const [selectedTaskForCompletion, setSelectedTaskForCompletion] = useState<Task | null>(null);
   const [requestType, setRequestType] = useState<RequestFormData['type']>('OVERTIME');
@@ -53,7 +56,10 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
       dependencies: [],
       taskName: 'User Authentication System',
       subTask: 'JWT Implementation',
-      assignedEngineers: [currentUser.id]
+      assignedEngineers: [currentUser.id],
+      subTasks: [],
+      createdBy: '',
+      createdByRole: ''
     },
     {
       id: '2',
@@ -87,7 +93,10 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
       dependencies: [],
       taskName: 'Mobile UI Components',
       subTask: 'Component Library',
-      assignedEngineers: [currentUser.id]
+      assignedEngineers: [currentUser.id],
+      subTasks: [],
+      createdBy: '',
+      createdByRole: ''
     }
   ]);
   
@@ -197,9 +206,38 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
   };
 
   const handleTaskSubmit = (data: any) => {
-    // In real app, this would create a new task
-    console.log('New task created:', data);
-    alert(`Task "${data.taskName}" created successfully!`);
+    const newTask: Task = {
+      id: Date.now().toString(),
+      projectId: selectedProject || '1',
+      title: data.taskName,
+      description: data.description || data.subTask,
+      assignedTo: currentUser.id,
+      status: currentUser.role === 'ENGINEER' ? 'ONGOING' : 'PENDING_TM_APPROVAL',
+      priority: data.priority,
+      estimatedHours: data.estimatedHours,
+      actualHours: 0,
+      startDate: data.startDate,
+      dueDate: data.dueDate,
+      dependencies: [],
+      taskName: data.taskName,
+      subTask: data.subTask,
+      assignedEngineers: data.assignedEngineers,
+      createdBy: currentUser.id,
+      createdByRole: currentUser.role,
+      assignedBy: currentUser.role === 'ENGINEER' ? currentUser.id : undefined,
+      assignedAt: currentUser.role === 'ENGINEER' ? new Date().toISOString() : undefined
+    };
+
+    // Add the new task to the local state
+    setTasks(prev => [newTask, ...prev]);
+
+    if (currentUser.role === 'ENGINEER') {
+      alert(`Task "${data.taskName}" created and assigned to you! You can start working on it immediately.`);
+    } else if (currentUser.role === 'PM') {
+      alert(`Task "${data.taskName}" created and sent to TM for approval!`);
+    } else {
+      alert(`Task "${data.taskName}" created and assigned to engineers!`);
+    }
   };
 
   const handleRequestSubmit = (data: RequestFormData) => {
@@ -313,6 +351,7 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
                     {task.status}
                   </div>
                 </div>
+                
 
                 {/* Progress */}
                 <div className="mb-4">
@@ -424,8 +463,8 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
           })}
         </div>
 
-        {/* Create Task Button - Only for PM/TM */}
-        {(currentUser.role === 'PM' || currentUser.role === 'TM') && (
+        {/* Create Task Button - For PM/TM and Engineers */}
+        {(currentUser.role === 'PM' || currentUser.role === 'TM' || currentUser.role === 'ENGINEER') && (
           <div className="flex justify-center">
             <button
               onClick={() => setIsTaskFormOpen(true)}
@@ -473,11 +512,41 @@ const EnhancedTaskExecution: React.FC<EnhancedTaskExecutionProps> = ({ currentUs
         <h1 className="text-2xl font-bold text-gray-900">Task Execution</h1>
         <p className="text-gray-600">
           {currentUser.role === 'ENGINEER' 
-            ? 'Select a project to view and manage your assigned tasks'
-            : 'Select a project to execute and manage tasks'
+            ? ''
+            : ''
           }
         </p>
       </div>
+      <div className="flex justify-between items-center mb-4">
+  {/* Left-side content if any */}
+  <div className="text-lg font-semibold">Tasks</div>
+
+  {/* Right-side view toggle */}
+  <div className="flex items-center bg-gray-100 rounded-lg p-1 ml-auto">
+    <button
+      onClick={() => setViewMode('grid')}
+      className={`p-2 rounded-md transition-colors ${
+        viewMode === 'grid'
+          ? 'bg-white text-gray-900 shadow-sm'
+          : 'text-gray-600 hover:text-gray-900'
+      }`}
+      title="Grid View"
+    >
+      <Grid3X3 className="w-4 h-4" />
+    </button>
+    <button
+      onClick={() => setViewMode('list')}
+      className={`p-2 rounded-md transition-colors ${
+        viewMode === 'list'
+          ? 'bg-white text-gray-900 shadow-sm'
+          : 'text-gray-600 hover:text-gray-900'
+      }`}
+      title="List View"
+    >
+      <List className="w-4 h-4" />
+    </button>
+  </div>
+</div>
 
       {/* Active Timer Display */}
       {isActive && (
