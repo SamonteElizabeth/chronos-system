@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 .env
+*.log
+*.py[cod]
+venv/
+db.sqlite3
+**/__pycache__/
+**/migrations/*.pyc
+**/pyvenv.cfg
